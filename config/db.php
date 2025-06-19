@@ -16,6 +16,12 @@ try {
 
     // Connection successful
     // echo "Connected successfully";
+    $sql = "CREATE TABLE IF NOT EXISTS test (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        name VARCHAR(100) NOT NULL";
+    
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute();
 } catch (PDOException $e) {
     die("Connection failed: " . $e->getMessage());
 }
