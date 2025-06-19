@@ -17,7 +17,6 @@ try {
     // Connection successful
     // echo "Connected successfully";
 
-    $pdo->exec($sql);    
 } catch (PDOException $e) {
     die("Connection failed: " . $e->getMessage());
 }

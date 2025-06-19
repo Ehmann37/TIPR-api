@@ -28,7 +28,7 @@ CREATE TABLE schedule (
     schedule_id INT AUTO_INCREMENT PRIMARY KEY,
     first_trip TIME,
     last_trip TIME,
-    interval INT -- in minutes
+    gap INT -- in minutes
 );
 
 -- Route Information
