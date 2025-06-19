@@ -1,8 +1,8 @@
 <?php
 $servername = "localhost";
-$username = "DB_USERNAME_HERE";
-$password = "DB_PASSWORD_HERE";
-$dbname = "DB_NAME_HERE";
+$username = "s24103435_tipr-api";
+$password = "api-tipr";
+$dbname = "tiprDB";
 
 try {
     $dsn = "mysql:host=$servername;dbname=$dbname;charset=utf8mb4";

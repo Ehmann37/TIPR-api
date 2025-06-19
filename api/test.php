@@ -18,7 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 require_once __DIR__ . '/../models/TestModel.php';
-define('API_TOKEN', "API_KEY_HERE");
+define('API_TOKEN', "tipr123api");
 
 try {
     $headers = apache_request_headers();
