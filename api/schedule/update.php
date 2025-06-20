@@ -4,9 +4,17 @@ require_once __DIR__ . '/../../models/ScheduleModel.php';
 
 checkAuthorization();
 
+if ($_SERVER['REQUEST_METHOD'] !== 'PUT') {
+    http_response_code(405);
+    echo json_encode([
+        'status' => 'error',
+        'message' => 'Method Not Allowed. Use PUT.'
+    ]);
+    exit;
+}
+
 $data = json_decode(file_get_contents("php://input"), true);
 
-// Basic validation
 if (
     !isset($data['schedule_id']) ||
     !isset($data['first_trip']) ||
@@ -44,3 +52,4 @@ try {
         'error' => $e->getMessage()
     ]);
 }
+?>
