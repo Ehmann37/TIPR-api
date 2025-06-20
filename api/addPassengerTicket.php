@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/../middleware.php';
+require_once __DIR__ . '/middleware.php';
 require_once __DIR__ . '/../models/PassengerModel.php';
 
 // Check token
