@@ -1,13 +1,14 @@
 # 🚌 Schedule API Documentation
 
-> This API handles all operations related to trip schedules including adding, fetching, updating, and deleting.
+> This API handles all operations related to trip schedules, following RESTful principles. It supports creating, retrieving, updating, and deleting schedules.
 
 ---
 
 ## 🔐 Authentication
 
-All endpoints require an `Authorization` header:
+All endpoints require an `Authorization` header.
 
+**Headers**
 ```
 Authorization: trip123api
 Content-Type: application/json
@@ -15,45 +16,27 @@ Content-Type: application/json
 
 ---
 
-## 📥 Fields (Used in JSON)
+## 📦 Data Model
 
-| Field           | Type    | Description                                |
-|-----------------|---------|--------------------------------------------|
-| `schedule_id`   | Integer | Unique ID of the schedule (auto-generated) |
-| `first_trip`    | String  | First trip time (format: `HH:MM AM/PM`)     |
-| `last_trip`     | String  | Last trip time (format: `HH:MM AM/PM`)      |
-| `time_interval` | Integer | Time gap (in minutes) between each trip     |
+| Field           | Type    | Description                                       |
+|-----------------|---------|---------------------------------------------------|
+| `schedule_id`   | Integer | Unique ID of the schedule (auto-generated, read-only) |
+| `first_trip`    | String  | First trip time (e.g., `03:00 AM` or `15:00`).     |
+| `last_trip`     | String  | Last trip time (e.g., `07:00 PM` or `19:00`).      |
+| `time_interval` | Integer | Time gap (in minutes) between each trip.          |
 
 ---
 
 ## 📌 Endpoints
 
-### ➕ Add Schedule
+The base URL for these endpoints is `.../api`. For example: `https://trip-api.dcism.org/api`.
 
-`POST https://trip-api.dcism.org/api/schedule/add.php`
+### 1. Get All Schedules
 
-#### Request Body:
-```json
-{
-  "first_trip": "03:00 AM",
-  "last_trip": "07:00 PM",
-  "time_interval": 30
-}
-```
+Retrieves a list of all schedules.
 
-#### Response:
-```json
-{
-  "status": "success",
-  "message": "Schedule added successfully"
-}
-```
-
----
-
-### 📋 Get All Schedules
-
-`GET https://trip-api.dcism.org/api/schedule/get.php`
+- **Endpoint:** `/schedule`
+- **Method:** `GET`
 
 #### Response:
 ```json
@@ -66,18 +49,28 @@ Content-Type: application/json
       "last_trip": "19:00:00",
       "time_interval": 30
     },
-    ...
+    {
+      "schedule_id": 2,
+      "first_trip": "04:00:00",
+      "last_trip": "20:00:00",
+      "time_interval": 20
+    }
   ]
 }
 ```
 
 ---
 
-### 🔍 Get Schedule by ID
+### 2. Get Schedule by ID
 
-`GET https://trip-api.dcism.org/api/schedule/getById.php?id=1`
+Retrieves a single schedule by its unique ID.
 
-#### Response (if found):
+- **Endpoint:** `/schedule/{id}`
+- **Method:** `GET`
+
+**Example URL:** `/schedule/1`
+
+#### Response (Success):
 ```json
 {
   "status": "success",
@@ -90,7 +83,7 @@ Content-Type: application/json
 }
 ```
 
-#### Response (if not found):
+#### Response (Error - Not Found):
 ```json
 {
   "status": "error",
@@ -100,43 +93,86 @@ Content-Type: application/json
 
 ---
 
-### ✏️ Update Schedule
+### 3. Add a New Schedule
 
-`PUT https://trip-api.dcism.org/api/schedule/update.php`
+Creates a new schedule. The `first_trip` and `last_trip` times will be converted to 24-hour format.
+
+- **Endpoint:** `/schedule`
+- **Method:** `POST`
 
 #### Request Body:
 ```json
 {
-  "schedule_id": 1,
-  "first_trip": "04:00 AM",
-  "last_trip": "06:00 PM",
-  "time_interval": 20
+  "first_trip": "3:00 AM",
+  "last_trip": "7:00 PM",
+  "time_interval": 30
 }
 ```
 
-#### Response:
+#### Response (Success):
 ```json
 {
   "status": "success",
-  "message": "Schedule updated successfully"
+  "schedule_id": 3
 }
 ```
 
 ---
 
-### 🗑️ Delete Schedule
+### 4. Update a Schedule
 
-`DELETE https://trip-api.dcism.org/api/schedule/delete.php?id=1`
+Updates an existing schedule by its ID.
 
-#### Response (if successful):
+- **Endpoint:** `/schedule/{id}`
+- **Method:** `PUT`
+
+**Example URL:** `/schedule/1`
+
+#### Request Body:
 ```json
 {
-  "status": "success",
-  "message": "Schedule deleted successfully"
+  "first_trip": "4:00 AM",
+  "last_trip": "6:00 PM",
+  "time_interval": 20
 }
 ```
 
-#### Response (if not found):
+#### Response (Success):
+```json
+{
+  "status": "success",
+  "message": "Schedule updated"
+}
+```
+
+#### Response (Error - Not Found or No Changes):
+```json
+{
+    "status": "error",
+    "message": "Schedule not found or no changes made"
+}
+```
+
+---
+
+### 5. Delete a Schedule
+
+Deletes a schedule by its ID.
+
+- **Endpoint:** `/schedule/{id}`
+- **Method:** `DELETE`
+
+**Example URL:** `/schedule/1`
+
+#### Response (Success):
+```json
+{
+  "status": "success",
+  "message": "Schedule deleted"
+}
+```
+
+#### Response (Error - Not Found):
 ```json
 {
   "status": "error",
@@ -148,14 +184,14 @@ Content-Type: application/json
 
 ## 🧪 Testing Tools
 
-- You can test all endpoints using **Postman**.
-- Make sure to set **Authorization header** and use **raw JSON** for `POST`.
+- You can test all endpoints using tools like **Postman**.
+- Remember to set the **Authorization** header and use **raw JSON** for request bodies.
 
 ---
 
 ## 📌 Notes
 
-- `first_trip` and `last_trip` can be in `HH:MM AM/PM` (will be converted to `HH:MM:SS`)
-- `time_interval` must be an integer (in minutes)
-- All responses are in **JSON** format
-- Use these endpoints when assigning schedules to routes or buses
+- `first_trip` and `last_trip` can be in `HH:MM AM/PM` format and will be automatically converted to the `HH:MM:SS` 24-hour format.
+- `time_interval` must be an integer (representing minutes).
+- All responses are in **JSON** format.
+- The `schedule_id` is passed via the URL for GET (single), PUT, and DELETE requests, not in the request body or query parameters.

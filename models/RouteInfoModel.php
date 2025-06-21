@@ -27,23 +27,25 @@ function addRouteInfo($data)
     global $pdo;
     $sql = "INSERT INTO route_information (route_name, schedule_id) VALUES (?, ?)";
     $stmt = $pdo->prepare($sql);
-    return $stmt->execute([
+    $stmt->execute([
         $data['route_name'],
         $data['schedule_id']
     ]);
+    return $pdo->lastInsertId();
 }
 
 // ✏️ Update route information
-function updateRouteInfo($data)
+function updateRouteInfo($id, $data)
 {
     global $pdo;
     $sql = "UPDATE route_information SET route_name = ?, schedule_id = ? WHERE route_id = ?";
     $stmt = $pdo->prepare($sql);
-    return $stmt->execute([
+    $stmt->execute([
         $data['route_name'],
         $data['schedule_id'],
-        $data['route_id']
+        $id
     ]);
+    return $stmt->rowCount() > 0;
 }
 
 // 🗑️ Delete route information
@@ -52,5 +54,6 @@ function deleteRouteInfo($route_id)
     global $pdo;
     $sql = "DELETE FROM route_information WHERE route_id = ?";
     $stmt = $pdo->prepare($sql);
-    return $stmt->execute([$route_id]);
+    $stmt->execute([$route_id]);
+    return $stmt->rowCount() > 0;
 }

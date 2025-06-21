@@ -1,0 +1,11 @@
+RewriteEngine On
+
+# Only rewrite if the file/folder doesn't exist
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# Reroutes requests for /api/resource/id/stops/stop_id
+RewriteRule ^([^/]+)/([0-9]+)/stops/([0-9]+)/?$ $1/index.php?id=$2&stop_id=$3 [QSA,L]
+
+# Reroutes requests for /api/resource/id
+RewriteRule ^([^/]+)(?:/([0-9]+))?/?$ $1/index.php?id=$2 [QSA,L]

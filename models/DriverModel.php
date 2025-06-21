@@ -37,7 +37,7 @@ function getDriverById($id) {
     return $stmt->fetch(PDO::FETCH_ASSOC);
 }
 
-function updateDriver($data) {
+function updateDriver($id, $data) {
     global $pdo;
 
     $sql = "UPDATE bus_driver SET 
@@ -55,7 +55,7 @@ function updateDriver($data) {
         ':last_name' => $data['last_name'],
         ':license_number' => $data['license_number'],
         ':contact_info' => $data['contact_info'],
-        ':driver_id' => intval($data['driver_id'])
+        ':driver_id' => intval($id)
     ]);
 
     return $stmt->rowCount() > 0;

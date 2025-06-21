@@ -35,17 +35,16 @@ function getRouteStopsByRouteId($route_id)
 }
 
 // ✏️ Update a stop's order in a route
-function updateRouteStop($data)
+function updateRouteStop($route_id, $data)
 {
     global $pdo;
     $sql = "UPDATE route SET stop_order = ? WHERE route_id = ? AND stop_id = ?";
     $stmt = $pdo->prepare($sql);
-    $stmt->execute([
+    return $stmt->execute([
         $data['stop_order'],
-        $data['route_id'],
+        $route_id,
         $data['stop_id']
     ]);
-    return $stmt->rowCount() > 0;
 }
 
 // 🗑️ Delete a stop from a route
@@ -55,5 +54,15 @@ function deleteRouteStop($route_id, $stop_id)
     $sql = "DELETE FROM route WHERE route_id = ? AND stop_id = ?";
     $stmt = $pdo->prepare($sql);
     $stmt->execute([$route_id, $stop_id]);
+    return $stmt->rowCount() > 0;
+}
+
+// 🗑️ Delete all stops for a given route
+function deleteRouteStopsByRouteId($route_id)
+{
+    global $pdo;
+    $sql = "DELETE FROM route WHERE route_id = ?";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute([$route_id]);
     return $stmt->rowCount() > 0;
 }

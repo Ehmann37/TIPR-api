@@ -19,28 +19,31 @@ function addStop($data) {
     global $pdo;
     $sql = "INSERT INTO stop (stop_name, longitude, latitude) VALUES (?, ?, ?)";
     $stmt = $pdo->prepare($sql);
-    return $stmt->execute([
+    $stmt->execute([
         $data['stop_name'],
         $data['longitude'],
         $data['latitude']
     ]);
+    return $pdo->lastInsertId();
 }
 
-function updateStop($data) {
+function updateStop($id, $data) {
     global $pdo;
     $sql = "UPDATE stop SET stop_name = ?, longitude = ?, latitude = ? WHERE stop_id = ?";
     $stmt = $pdo->prepare($sql);
-    return $stmt->execute([
+    $stmt->execute([
         $data['stop_name'],
         $data['longitude'],
         $data['latitude'],
-        $data['stop_id']
+        $id
     ]);
+    return $stmt->rowCount() > 0;
 }
 
 function deleteStop($id) {
     global $pdo;
     $stmt = $pdo->prepare("DELETE FROM stop WHERE stop_id = ?");
-    return $stmt->execute([$id]);
+    $stmt->execute([$id]);
+    return $stmt->rowCount() > 0;
 }
 ?>

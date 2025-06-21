@@ -1,99 +1,86 @@
-# Driver API Documentation
+# 🚌 Driver API Documentation
 
-This API manages bus driver data in the TRIP system. All endpoints require API token authentication.
+> This API manages bus driver data in the TRIP system, following RESTful principles. It supports creating, retrieving, updating, and deleting driver records.
 
-## Authorization
+---
 
-Add the following header to all requests:
+## 🔐 Authentication
+
+All endpoints require an `Authorization` header.
+
+**Headers**
 ```
-Authorization: Bearer trip123api
+Authorization: trip123api
+Content-Type: application/json
 ```
 
-## Endpoints
+---
+
+## 📦 Data Model
+
+| Field           | Type    | Description                                    |
+|-----------------|---------|------------------------------------------------|
+| `driver_id`     | Integer | Unique ID of the driver (auto-generated, read-only) |
+| `company_id`    | Integer | Foreign key referencing the bus company.       |
+| `first_name`    | String  | Driver's first name.                           |
+| `last_name`     | String  | Driver's last name.                            |
+| `license_number`| String  | Driver's license number.                       |
+| `contact_info`  | String  | Driver's contact information (phone number).  |
+
+---
+
+## 📌 Endpoints
+
+The base URL for these endpoints is `.../api`. For example: `https://trip-api.dcism.org/api`.
 
 ### 1. Get All Drivers
 
-Retrieves all bus drivers in the system.
+Retrieves a list of all drivers in the system.
 
-- **URL**: `/api/driver/get.php`
-- **Method**: `GET`
-- **Authentication**: Required
-- **Response**:
-  ```json
-  {
-    "status": "success",
-    "data": [
-      {
-        "driver_id": 1,
-        "company_id": 1,
-        "first_name": "John",
-        "last_name": "Doe",
-        "license_number": "LIC12345678",
-        "contact_info": "09123456789"
-      },
-      // ... other drivers
-    ]
-  }
-  ```
+- **Endpoint:** `/driver`
+- **Method:** `GET`
 
-### 2. Get Driver by ID
-
-Retrieves a specific driver by ID.
-
-- **URL**: `/api/driver/getById.php?id={driver_id}`
-- **Method**: `GET`
-- **Parameters**: `id` (integer) - The driver ID
-- **Authentication**: Required
-- **Response**:
-  ```json
-  {
-    "status": "success",
-    "data": {
+#### Response:
+```json
+{
+  "status": "success",
+  "data": [
+    {
       "driver_id": 1,
       "company_id": 1,
       "first_name": "John",
       "last_name": "Doe",
       "license_number": "LIC12345678",
       "contact_info": "09123456789"
+    },
+    {
+      "driver_id": 2,
+      "company_id": 1,
+      "first_name": "Jane",
+      "last_name": "Smith",
+      "license_number": "LIC87654321",
+      "contact_info": "09876543210"
     }
-  }
-  ```
+  ]
+}
+```
 
-### 3. Add New Driver
+---
 
-Creates a new driver record.
+### 2. Get Driver by ID
 
-- **URL**: `/api/driver/add.php`
-- **Method**: `POST`
-- **Authentication**: Required
-- **Request Body**:
-  ```json
-  {
-    "company_id": 1,
-    "first_name": "John",
-    "last_name": "Doe",
-    "license_number": "LIC12345678",
-    "contact_info": "09123456789"
-  }
-  ```
-- **Response**:
-  ```json
-  {
-    "status": "success",
-    "driver_id": 1
-  }
-  ```
+Retrieves a single driver by their unique ID.
 
-### 4. Update Driver
+- **Endpoint:** `/driver/{id}`
+- **Method:** `GET`
 
-Updates an existing driver record.
+**Example URL:** `/driver/1`
 
-- **URL**: `/api/driver/update.php`
-- **Method**: `PUT`
-- **Authentication**: Required
-- **Request Body**:
-  ```json
-  {
+#### Response (Success):
+```json
+{
+  "status": "success",
+  "data": {
     "driver_id": 1,
     "company_id": 1,
     "first_name": "John",
@@ -101,57 +88,10 @@ Updates an existing driver record.
     "license_number": "LIC12345678",
     "contact_info": "09123456789"
   }
-  ```
-- **Response**:
-  ```json
-  {
-    "status": "success",
-    "message": "Driver updated successfully"
-  }
-  ```
-
-### 5. Delete Driver
-
-Deletes an existing driver record.
-
-- **URL**: `/api/driver/delete.php`
-- **Method**: `DELETE`
-- **Authentication**: Required
-- **Request Body**:
-  ```json
-  {
-    "driver_id": 1
-  }
-  ```
-- **Response**:
-  ```json
-  {
-    "status": "success",
-    "message": "Driver deleted successfully"
-  }
-  ```
-
-## Error Responses
-
-All endpoints may return the following error responses:
-
-### 400 Bad Request
-```json
-{
-  "status": "error",
-  "message": "Missing required fields" 
 }
 ```
 
-### 401 Unauthorized
-```json
-{
-  "status": "error",
-  "message": "Unauthorized access. Invalid token."
-}
-```
-
-### 404 Not Found
+#### Response (Error - Not Found):
 ```json
 {
   "status": "error",
@@ -159,11 +99,111 @@ All endpoints may return the following error responses:
 }
 ```
 
-### 500 Internal Server Error
+---
+
+### 3. Add a New Driver
+
+Creates a new driver record.
+
+- **Endpoint:** `/driver`
+- **Method:** `POST`
+
+#### Request Body:
+```json
+{
+  "company_id": 1,
+  "first_name": "John",
+  "last_name": "Doe",
+  "license_number": "LIC12345678",
+  "contact_info": "09123456789"
+}
+```
+
+#### Response (Success):
+```json
+{
+  "status": "success",
+  "driver_id": 3
+}
+```
+
+---
+
+### 4. Update a Driver
+
+Updates an existing driver by their ID.
+
+- **Endpoint:** `/driver/{id}`
+- **Method:** `PUT`
+
+**Example URL:** `/driver/1`
+
+#### Request Body:
+```json
+{
+  "company_id": 1,
+  "first_name": "John",
+  "last_name": "Doe",
+  "license_number": "LIC12345678",
+  "contact_info": "09123456789"
+}
+```
+
+#### Response (Success):
+```json
+{
+  "status": "success",
+  "message": "Driver updated"
+}
+```
+
+#### Response (Error - Not Found or No Changes):
+```json
+{
+    "status": "error",
+    "message": "Driver not found or no changes made"
+}
+```
+
+---
+
+### 5. Delete a Driver
+
+Deletes a driver by their ID.
+
+- **Endpoint:** `/driver/{id}`
+- **Method:** `DELETE`
+
+**Example URL:** `/driver/1`
+
+#### Response (Success):
+```json
+{
+  "status": "success",
+  "message": "Driver deleted"
+}
+```
+
+#### Response (Error - Not Found):
 ```json
 {
   "status": "error",
-  "message": "Failed to [operation]",
-  "error": "Error details"
+  "message": "Driver not found"
 }
-``` 
+```
+
+---
+
+## 🧪 Testing Tools
+
+- You can test all endpoints using tools like **Postman**.
+- Remember to set the **Authorization** header and use **raw JSON** for request bodies.
+
+---
+
+## 📌 Notes
+
+- The `driver_id` is passed via the URL for GET (single), PUT, and DELETE requests, not in the request body or query parameters.
+- `company_id` must correspond to an existing company in the system.
+- All responses are in **JSON** format.
+- License numbers should be unique for each driver. 
