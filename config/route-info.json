@@ -1,5 +1,13 @@
 [
   {
+    "route_name": "CSBT to Bato via Oslob",
+    "schedule_id": 1
+  },
+  {
+    "route_name": "Bato to CSBT via Oslob",
+    "schedule_id": 2
+  },
+  {
     "route_name": "CSBT to Bato via Barili",
     "schedule_id": 3
   },
