@@ -1,0 +1,34 @@
+[
+  {
+    "route_name": "CSBT to Bato via Barili",
+    "schedule_id": 3
+  },
+  {
+    "route_name": "Bato to CSBT via Barili",
+    "schedule_id": 4
+  },
+  {
+    "route_name": "CSBT to Moalboal",
+    "schedule_id": 5
+  },
+  {
+    "route_name": "Moalboal to CSBT",
+    "schedule_id": 6
+  },
+  {
+    "route_name": "CSBT to Argao",
+    "schedule_id": 7
+  },
+  {
+    "route_name": "Argao to CSBT",
+    "schedule_id": 8
+  },
+  {
+    "route_name": "CSBT to Alcoy",
+    "schedule_id": 9
+  },
+  {
+    "route_name": "Alcoy to CSBT",
+    "schedule_id": 10
+  }
+]
