@@ -1,6 +1,6 @@
 <?php
-require_once __DIR__ . '/../middleware.php';
-require_once __DIR__ . '/../../models/ScheduleModel.php';
+require_once __DIR__ . '/middleware.php';
+require_once __DIR__ . '/../models/ScheduleModel.php';
 
 checkAuthorization();
 

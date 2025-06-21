@@ -102,7 +102,7 @@ Content-Type: application/json
 
 ### ✏️ Update Schedule
 
-`POST https://trip-api.dcism.org/api/schedule/update.php`
+`PUT https://trip-api.dcism.org/api/schedule/update.php`
 
 #### Request Body:
 ```json
@@ -126,7 +126,7 @@ Content-Type: application/json
 
 ### 🗑️ Delete Schedule
 
-`GET https://trip-api.dcism.org/api/schedule/delete.php?id=1`
+`DELETE https://trip-api.dcism.org/api/schedule/delete.php?id=1`
 
 #### Response (if successful):
 ```json
