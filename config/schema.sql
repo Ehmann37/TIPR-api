@@ -75,7 +75,8 @@ CREATE TABLE payment (
     payment_mode VARCHAR(50), -- e.g., cash, card, GCash
     payment_platform VARCHAR(50), -- e.g., terminal, mobile app
     fare_amount DECIMAL(10, 2),
-    payment_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    payment_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (ticket_id) REFERENCES passenger_ticket(ticket_id)
 );
 
 -- Passenger Ticket
@@ -84,7 +85,6 @@ CREATE TABLE passenger_ticket (
     bus_id INT,
     origin_stop_id INT,
     destination_stop_id INT,
-    payment_id INT,
     first_name VARCHAR(50),
     last_name VARCHAR(50),
     seat_number INT,
@@ -94,6 +94,5 @@ CREATE TABLE passenger_ticket (
     ticket_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (bus_id) REFERENCES bus(bus_id),
     FOREIGN KEY (origin_stop_id) REFERENCES stop(stop_id),
-    FOREIGN KEY (destination_stop_id) REFERENCES stop(stop_id),
-    FOREIGN KEY (payment_id) REFERENCES payment(payment_id)
+    FOREIGN KEY (destination_stop_id) REFERENCES stop(stop_id)
 );
