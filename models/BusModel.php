@@ -67,3 +67,23 @@ function deleteBus($id) {
 
     return $stmt->rowCount() > 0;
 } 
+
+function checkBusExists($busId){
+    global $pdo;
+
+    try {
+        $stmt = $pdo->prepare("SELECT COUNT(*) FROM bus WHERE bus_id = ?");
+        $stmt->execute([$busId]);
+        $exists = $stmt->fetchColumn();
+    
+        if (!$exists) {
+            http_response_code(404);
+            echo json_encode(['status' => 'error', 'message' => 'Bus ID not found in database.']);
+            exit;
+        }
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode(['status' => 'error', 'message' => 'Database error', 'error' => $e->getMessage()]);
+        exit;
+    }
+}

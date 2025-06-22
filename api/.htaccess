@@ -1,11 +1,17 @@
 RewriteEngine On
 
-# Only rewrite if the file/folder doesn't exist
+# Disable directory slash redirect (MUST be first)
+DirectorySlash Off
+
+# Prevent duplicate query params (critical fix)
+RewriteCond %{QUERY_STRING} ^(.*)&(.*)$ [NC]
+RewriteRule ^(.*)$ /$1?%1 [R=301,L]
+
+# Handle /TRIP-api/api/session (no trailing slash)
+RewriteRule ^/api/session$ /api/session/index.php [QSA,L]
+
+# Existing other routes
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-
-# Reroutes requests for /api/resource/id/stops/stop_id
 RewriteRule ^([^/]+)/([^/]+)/stops/([^/]+)/?$ $1/index.php?id=$2&stop_id=$3 [QSA,L]
-
-# Reroutes requests for /api/resource/id
 RewriteRule ^([^/]+)(?:/([^/]+))?/?$ $1/index.php?id=$2 [QSA,L]
