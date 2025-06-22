@@ -1,6 +1,8 @@
+/*
 schedule -> stop -> route-information -> route 
                                                 > bus -> ticket + payment
                          company -> bus-driver 
+*/
 
 
 -- Company table (optional, since you mentioned company_id)
