@@ -15,9 +15,9 @@ Authorization: Bearer trip123api
 ## Endpoints
 
 ### Get All Tickets
-- **GET** `/ticket/`
+- **GET** `/ticket/index.php`
 - **Description:** Retrieve all tickets with passenger and stop information
-- **Response:**
+- **1st Response (without payment):**
 ```json
 {
   "status": "success",
@@ -29,15 +29,41 @@ Authorization: Bearer trip123api
       "destination_stop_id": 2,
       "first_name": "John",
       "last_name": "Doe",
-      "seat_number": 15,
+      "seat_number": "15",
       "passenger_category": "regular",
       "boarding_time": "2024-01-15 08:00:00",
       "arrival_time": "2024-01-15 09:30:00",
       "ticket_timestamp": "2024-01-15 07:45:00",
-      "origin_stop": "Terminal 1",
-      "destination_stop": "Terminal 2"
     }
   ]
+}
+```
+- **2nd Response (with payment):**
+
+```JSON
+{
+    "status": "success",
+    "data": {
+        "ticket_id": 2,
+        "bus_id": 1,
+        "origin_stop_id": 9,
+        "destination_stop_id": 2,
+        "first_name": "Doe",
+        "last_name": "John",
+        "seat_number": "15",
+        "passenger_category": "regular",
+        "passenger_status": "took_off",
+        "boarding_time": "2024-01-15 08:00:00",
+        "arrival_time": "2024-01-15 09:30:00",
+        "ticket_timestamp": "2025-06-23 14:15:57",
+        "origin_stop": "Boljoon",
+        "destination_stop": "Minglanilla",
+        "payment_id": 2,
+        "payment_mode": "cash",
+        "payment_platform": "terminal",
+        "fare_amount": "150.00",
+        "payment_timestamp": "2025-06-23 14:15:57"
+    }
 }
 ```
 
@@ -55,7 +81,7 @@ Authorization: Bearer trip123api
     "destination_stop_id": 2,
     "first_name": "John",
     "last_name": "Doe",
-    "seat_number": 15,
+    "seat_number": "15",
     "passenger_category": "regular",
     "boarding_time": "2024-01-15 08:00:00",
     "arrival_time": "2024-01-15 09:30:00",

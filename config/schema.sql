@@ -87,8 +87,9 @@ CREATE TABLE passenger_ticket (
     destination_stop_id INT,
     first_name VARCHAR(50),
     last_name VARCHAR(50),
-    seat_number INT,
+    seat_number VARCHAR(5),
     passenger_category ENUM('regular', 'student', 'senior', 'pwd'),
+    passenger_status ENUM('onboard', 'took_off'),
     boarding_time DATETIME,
     arrival_time DATETIME,
     ticket_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -96,3 +97,4 @@ CREATE TABLE passenger_ticket (
     FOREIGN KEY (origin_stop_id) REFERENCES stop(stop_id),
     FOREIGN KEY (destination_stop_id) REFERENCES stop(stop_id)
 );
+

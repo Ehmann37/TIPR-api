@@ -9,14 +9,25 @@ header("Content-Type: application/json");
 
 $method = $_SERVER['REQUEST_METHOD'];
 $id = !empty($_GET['id']) ? $_GET['id'] : null;
+$busId = !empty($_GET['busid']) ? $_GET['busid'] : null;
+$status = !empty($_GET['status']) ? $_GET['status'] : null;
+
 
 switch ($method) {
     case 'GET':
         if ($id === null) {
-            $tickets = getTickets();
+            if ($busId !== null && $status !== null) {
+                $tickets = getTickets(['bus_id' => $busId, 'status' => $status]);
+            } else if ($busId !== null) {
+                $tickets = getTickets(['bus_id' => $busId]);
+            } else if ($status !== null){
+                $tickets = getTickets(['status' => $status]);
+            } else {
+                $tickets = getTickets();
+            }
             echo json_encode(['status' => 'success', 'data' => $tickets]);
         } else {
-            $ticket = getTicketWithPayment($id);
+            $ticket = getTicketById($id);
             if ($ticket) {
                 echo json_encode(['status' => 'success', 'data' => $ticket]);
             } else {
@@ -63,25 +74,25 @@ switch ($method) {
                 http_response_code(500);
                 echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
             }
-        } else {
-            // Regular ticket creation only
-            $requiredFields = ['bus_id', 'origin_stop_id', 'destination_stop_id', 'first_name', 'last_name', 'seat_number', 'passenger_category', 'boarding_time', 'arrival_time'];
-            foreach ($requiredFields as $field) {
-                if (!isset($data[$field])) {
-                    http_response_code(400);
-                    echo json_encode(['status' => 'error', 'message' => "Missing required field: $field"]);
-                    exit;
-                }
-            }
+        }// else {
+        //     // Regular ticket creation only
+        //     $requiredFields = ['bus_id', 'origin_stop_id', 'destination_stop_id', 'first_name', 'last_name', 'seat_number', 'passenger_category', 'boarding_time', 'arrival_time'];
+        //     foreach ($requiredFields as $field) {
+        //         if (!isset($data[$field])) {
+        //             http_response_code(400);
+        //             echo json_encode(['status' => 'error', 'message' => "Missing required field: $field"]);
+        //             exit;
+        //         }
+        //     }
 
-            try {
-                $ticketId = addTicket($data);
-                echo json_encode(['status' => 'success', 'ticket_id' => $ticketId]);
-            } catch (Exception $e) {
-                http_response_code(500);
-                echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
-            }
-        }
+        //     try {
+        //         $ticketId = addTicket($data);
+        //         echo json_encode(['status' => 'success', 'ticket_id' => $ticketId]);
+        //     } catch (Exception $e) {
+        //         http_response_code(500);
+        //         echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
+        //     }
+        // }
         break;
 
     case 'PUT':

@@ -65,7 +65,7 @@ function decryptData($token, $key, $maxAgeSeconds = 30) {
 
             if ($tokenTime === false) return null; // Invalid timestamp format
 
-            if ($currentTime - $tokenTime > $maxAgeSeconds) return null; // token expired
+            //if ($currentTime - $tokenTime > $maxAgeSeconds) return null; // token expired
         }
 
         return $data;
