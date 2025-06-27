@@ -1,0 +1,62 @@
+[
+  {
+    "stop_name": "CSBT",
+    "latitude": 10.2983588,
+    "longitude": 123.8931687
+  },
+  {
+    "stop_name": "Minglanilla Cebu",
+    "latitude": 10.2444903,
+    "longitude": 123.7924961
+  },
+  {
+    "stop_name": "San Fernando",
+    "latitude": 10.1638542,
+    "longitude": 123.7079761
+  },
+  {
+    "stop_name": "Car Car",
+    "latitude": 10.1037684,
+    "longitude": 123.640679
+  },
+  {
+    "stop_name": "Sibonga",
+    "latitude": 10.01555699,
+    "longitude": 123.6193844
+  },
+  {
+    "stop_name": "Argao",
+    "latitude": 9.8829437,
+    "longitude": 123.6059743
+  },
+  {
+    "stop_name": "Dalaguete",
+    "latitude": 9.7603889,
+    "longitude": 123.5332818
+  },
+  {
+    "stop_name": "Alcoy",
+    "latitude": 9.7094478,
+    "longitude": 123.5069594
+  },
+  {
+    "stop_name": "Boljoon",
+    "latitude": 9.6880981,
+    "longitude": 123.5037633
+  },
+  {
+    "stop_name": "Oslob",
+    "latitude": 9.5217291,
+    "longitude": 123.4323431
+  },
+  {
+    "stop_name": "Santander",
+    "latitude": 9.4170659,
+    "longitude": 123.3329541
+  },
+  {
+    "stop_name": "Bato",
+    "latitude": 9.4647896,
+    "longitude": 123.2994993
+  }
+]

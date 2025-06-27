@@ -1,0 +1,15 @@
+INSERT INTO `bus` (`bus_id`, `route_id`, `company_id`, `bus_driver_id`, `status`, `route_status`) VALUES
+(1, 1, 1, 1, 'active', 'en_route'),
+(2, 9, 1, 5, 'active', 'stationary'),
+(3, 2, 1, 4, 'inactive', 'stationary'),
+(4, 7, 1, 3, 'active', 'stationary'),
+(5, 1, 1, 6, 'active', 'en_route'),
+(6, 9, 1, 5, 'inactive', 'stationary'),
+(7, 4, 1, 2, 'active', 'en_route'),
+(8, 8, 1, 1, 'active', 'stationary'),
+(9, 6, 1, 3, 'inactive', 'stationary'),
+(10, 10, 1, 4, 'active', 'en_route'),
+(11, 3, 1, 5, 'active', 'stationary'),
+(12, 2, 1, 6, 'inactive', 'stationary'),
+(13, 3, 1, 2, 'active', 'en_route'),
+(14, 5, 1, 1, 'active', 'stationary');

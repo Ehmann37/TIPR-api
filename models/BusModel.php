@@ -4,28 +4,53 @@ require_once __DIR__ . '/../config/db.php';
 function addBus($data) {
     global $pdo;
 
-    $sql = "INSERT INTO bus (route_id, company_id, bus_driver_id, status)
-            VALUES (:route_id, :company_id, :bus_driver_id, :status)";
+    $sql = "INSERT INTO bus (route_id, company_id, bus_driver_id, status, route_status)
+            VALUES (:route_id, :company_id, :bus_driver_id, :status, route_status)";
 
     $stmt = $pdo->prepare($sql);
     $stmt->execute([
         ':route_id' => $data['route_id'],
         ':company_id' => $data['company_id'],
         ':bus_driver_id' => $data['bus_driver_id'],
-        ':status' => $data['status']
+        ':status' => $data['status'],
+        ':route_status' => $data['route_status']
     ]);
 
     return $pdo->lastInsertId();
 }
 
-function getBuses() {
+function getBuses($filters = []) {
     global $pdo;
 
-    $sql = "SELECT * FROM bus ORDER BY bus_id ASC";
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute();
+    $sql = "SELECT b.* FROM bus b WHERE 1=1";
 
+    $route_id = $filters['route_id'] ?? null;
+    $route_status = $filters['route_status'] ?? null;
+    $status = $filters['status'] ?? null;
+
+    $params = [];
+
+    if ($route_id !== null) {
+        $sql .= ' AND b.route_id = :route_id';
+        $params[':route_id'] = $route_id;
+    }
+
+    if ($route_status !== null)     {
+        $sql .= ' AND b.route_status = :route_status'; 
+        $params[':route_status'] = $route_status;
+    }
+
+    if ($status !== null) {
+        $sql .= ' AND b.status = :status';
+        $params[':status'] = $status;
+    }
+
+    $sql .= ' ORDER BY b.bus_id ASC';
+
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
+
 }
 
 function getBusById($id) {
@@ -44,6 +69,7 @@ function updateBus($id, $data) {
                 company_id = :company_id,
                 bus_driver_id = :bus_driver_id,
                 status = :status
+                route_status = :route_status
             WHERE bus_id = :bus_id";
 
     $stmt = $pdo->prepare($sql);
@@ -52,6 +78,7 @@ function updateBus($id, $data) {
         ':company_id' => $data['company_id'],
         ':bus_driver_id' => $data['bus_driver_id'],
         ':status' => $data['status'],
+        ':route_status' => $data['route_status'],
         ':bus_id' => intval($id)
     ]);
 

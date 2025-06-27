@@ -8,11 +8,32 @@ header("Content-Type: application/json");
 
 $method = $_SERVER['REQUEST_METHOD'];
 $id = !empty($_GET['id']) ? $_GET['id'] : null;
+$status = !empty($_GET['status']) ? $_GET['status'] : null;
+$route_id = !empty($_GET['routeId']) ? $_GET['routeId'] : null;
+$route_status = !empty($_GET['routeStatus']) ? $_GET['routeStatus'] : null;
+
+if ($id !== null){
+    checkBusExists($id);
+}
 
 switch ($method) {
     case 'GET':
         if ($id === null) {
-            $buses = getBuses();
+            $filters = [];
+
+            if ($route_id !== null) {
+                $filters['route_id'] = $route_id;
+            }
+
+            if ($route_status !== null) {
+                $filters['route_status'] = $route_status;
+            }
+
+            if ($status !== null) {
+                $filters['status'] = $status;
+            }
+
+            $buses = getBuses($filters);
             echo json_encode(['status' => 'success', 'data' => $buses]);
         } else {
             $bus = getBusById($id);

@@ -9,30 +9,36 @@ header("Content-Type: application/json");
 
 $method = $_SERVER['REQUEST_METHOD'];
 $id = !empty($_GET['id']) ? $_GET['id'] : null;
-$busId = !empty($_GET['busid']) ? $_GET['busid'] : null;
-$status = !empty($_GET['status']) ? $_GET['status'] : null;
-
+$busId = !empty($_GET['busId']) ? $_GET['busId'] : null;
+$passengerStatus = !empty($_GET['passengerStatus']) ? $_GET['passengerStatus'] : null;
+$payment_status = !empty($_GET['paymentStatus']) ? $_GET['paymentStatus'] : null;
 
 switch ($method) {
     case 'GET':
         if ($id === null) {
-            if ($busId !== null && $status !== null) {
-                $tickets = getTickets(['bus_id' => $busId, 'status' => $status]);
-            } else if ($busId !== null) {
-                $tickets = getTickets(['bus_id' => $busId]);
-            } else if ($status !== null){
-                $tickets = getTickets(['status' => $status]);
-            } else {
-                $tickets = getTickets();
+            $filters = [];
+
+            if ($busId !== null) {
+                $filters['bus_id'] = $busId;
             }
-            echo json_encode(['status' => 'success', 'data' => $tickets]);
+
+            if ($passengerStatus !== null) {
+                $filters['pass$passengerStatus'] = $passengerStatus;
+            }
+
+            if ($payment_status !== null) {
+                $filters['payment_status'] = $payment_status;
+            }
+
+            $tickets = getTickets($filters);
+            echo json_encode(['pass$passengerStatus' => 'success', 'data' => $tickets]);
         } else {
             $ticket = getTicketById($id);
             if ($ticket) {
-                echo json_encode(['status' => 'success', 'data' => $ticket]);
+                echo json_encode(['pass$passengerStatus' => 'success', 'data' => $ticket]);
             } else {
                 http_response_code(404);
-                echo json_encode(['status' => 'error', 'message' => 'Ticket not found']);
+                echo json_encode(['pass$passengerStatus' => 'error', 'message' => 'Ticket not found']);
             }
         }
         break;
@@ -40,15 +46,12 @@ switch ($method) {
     case 'POST':
         $data = json_decode(file_get_contents("php://input"), true);
 
-        // Check if this is a combined ticket+payment creation
         if (isset($data['payment'])) {
-            // Combined ticket and payment creation
             $ticketData = $data;
             $paymentData = $data['payment'];
             unset($ticketData['payment']);
 
-            // Validate ticket data
-            $requiredTicketFields = ['bus_id', 'origin_stop_id', 'destination_stop_id', 'first_name', 'last_name', 'seat_number', 'passenger_category', 'boarding_time', 'arrival_time'];
+            $requiredTicketFields = ['bus_id', 'origin_stop_id', 'destination_stop_id', 'full_name', 'seat_number', 'passenger_category', 'passenger_status', 'boarding_time'];
             foreach ($requiredTicketFields as $field) {
                 if (!isset($ticketData[$field])) {
                     http_response_code(400);
@@ -57,8 +60,7 @@ switch ($method) {
                 }
             }
 
-            // Validate payment data
-            $requiredPaymentFields = ['payment_mode', 'payment_platform', 'fare_amount'];
+            $requiredPaymentFields = ['payment_mode', 'payment_platform', 'fare_amount', 'payment_status'];
             foreach ($requiredPaymentFields as $field) {
                 if (!isset($paymentData[$field])) {
                     http_response_code(400);
@@ -74,25 +76,10 @@ switch ($method) {
                 http_response_code(500);
                 echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
             }
-        }// else {
-        //     // Regular ticket creation only
-        //     $requiredFields = ['bus_id', 'origin_stop_id', 'destination_stop_id', 'first_name', 'last_name', 'seat_number', 'passenger_category', 'boarding_time', 'arrival_time'];
-        //     foreach ($requiredFields as $field) {
-        //         if (!isset($data[$field])) {
-        //             http_response_code(400);
-        //             echo json_encode(['status' => 'error', 'message' => "Missing required field: $field"]);
-        //             exit;
-        //         }
-        //     }
-
-        //     try {
-        //         $ticketId = addTicket($data);
-        //         echo json_encode(['status' => 'success', 'ticket_id' => $ticketId]);
-        //     } catch (Exception $e) {
-        //         http_response_code(500);
-        //         echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
-        //     }
-        // }
+        } else {
+            http_response_code(400);
+            echo json_encode(['status' => 'error', 'message' => 'Payment data is required for ticket creation']);
+        }
         break;
 
     case 'PUT':
@@ -104,22 +91,33 @@ switch ($method) {
 
         $data = json_decode(file_get_contents("php://input"), true);
 
-        $requiredFields = ['bus_id', 'origin_stop_id', 'destination_stop_id', 'first_name', 'last_name', 'seat_number', 'passenger_category', 'boarding_time', 'arrival_time'];
-        foreach ($requiredFields as $field) {
-            if (!isset($data[$field])) {
-                http_response_code(400);
-                echo json_encode(['status' => 'error', 'message' => "Missing required field: $field"]);
-                exit;
-            }
+        if ($data === null){
+            http_response_code(400);
+            echo json_encode(['status' => 'error', 'message' => 'No data provided to update']);
+            exit;
         }
-
+        
         try {
-            $updated = updateTicket($id, $data);
-            if ($updated) {
-                echo json_encode(['status' => 'success', 'message' => 'Ticket updated']);
+            $result = updateTicket($id, $data);
+            if ($result['success']){
+                echo json_encode([
+                    'status' => 'success',
+                    'message' => 'Update Successful',
+                    'details' => [
+                        'ticket_updated' => $result['ticket_updated'],
+                        'payment_updated' => $result['payment_updated']
+                    ]
+                ]);
             } else {
                 http_response_code(404);
-                echo json_encode(['status' => 'error', 'message' => 'Ticket not found or no changes made']);
+                echo json_encode([
+                    'status' => 'error',
+                    'message' => 'No changes were made to ticket or payment.',
+                    'details' => [
+                        'ticket_updated' => $result['ticket_updated'],
+                        'payment_updated' => $result['payment_updated']
+                    ]
+                ]);
             }
         } catch (Exception $e) {
             http_response_code(500);

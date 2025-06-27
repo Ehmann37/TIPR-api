@@ -1,7 +1,6 @@
 <?php
 require_once __DIR__ . '/../config/db.php';
 
-// ➕ Add a stop to a route
 function addRouteStop($data)
 {
     global $pdo;
@@ -14,7 +13,6 @@ function addRouteStop($data)
     ]);
 }
 
-// 📥 Get all route-stop mappings
 function getAllRouteStops()
 {
     global $pdo;
@@ -24,17 +22,36 @@ function getAllRouteStops()
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-// 🔍 Get stops for a specific route
 function getRouteStopsByRouteId($route_id)
 {
     global $pdo;
-    $sql = "SELECT * FROM route WHERE route_id = ? ORDER BY stop_order";
-    $stmt = $pdo->prepare($sql);
+    
+    $RouteInfoSQL = "SELECT route_name, schedule_id FROM route_information WHERE route_id = ?";
+    $stmt = $pdo->prepare($RouteInfoSQL);
     $stmt->execute([$route_id]);
-    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $route_info = $stmt->fetch(PDO::FETCH_ASSOC);
+    if (!$route_info) {
+        return null; // Route not found
+    }
+
+    $StopsSQL = "SELECT s.stop_name, r.stop_id 
+    FROM route r
+    JOIN stop s ON r.stop_id = s.stop_id
+    WHERE route_id = ? ORDER BY stop_order";
+
+    $stmt = $pdo->prepare($StopsSQL);
+    $stmt->execute([$route_id]);
+    $stops = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    return [
+        "route_id" => $route_id,
+        "route_name" => $route_info['route_name'],
+        "schedule_id" => $route_info['schedule_id'],
+        "stops" => $stops
+    ];
 }
 
-// ✏️ Update a stop's order in a route
+
 function updateRouteStop($route_id, $data)
 {
     global $pdo;
@@ -47,7 +64,6 @@ function updateRouteStop($route_id, $data)
     ]);
 }
 
-// 🗑️ Delete a stop from a route
 function deleteRouteStop($route_id, $stop_id)
 {
     global $pdo;
@@ -57,7 +73,6 @@ function deleteRouteStop($route_id, $stop_id)
     return $stmt->rowCount() > 0;
 }
 
-// 🗑️ Delete all stops for a given route
 function deleteRouteStopsByRouteId($route_id)
 {
     global $pdo;
