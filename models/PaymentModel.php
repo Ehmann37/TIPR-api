@@ -4,17 +4,21 @@ require_once __DIR__ . '/../config/db.php';
 function addPayment($data) {
     global $pdo;
 
-    $sql = "INSERT INTO payment (ticket_id, payment_mode, payment_platform, fare_amount, payment_status)
+    $sql = "INSERT INTO payment (ticket_id, payment_id, payment_mode, payment_platform, fare_amount, payment_status)
             VALUES (:ticket_id, :payment_mode, :payment_platform, :fare_amount, :payment_status)";
+
 
     $stmt = $pdo->prepare($sql);
     $stmt->execute([
         ':ticket_id' => $data['ticket_id'],
-        ':payment_mode' => $data['payment_mode'],
-        ':payment_platform' => $data['payment_platform'],
-        ':fare_amount' => $data['fare_amount'],
-        ':payment_status' => isset($data['payment_status']) ? $data['payment_status'] : 'pending'
+        ':payment_id' => $data['payment_id'],
+        ':payment_mode' => isset($data['payment_mode']) ? $data['payment_mode'] : null,
+        ':payment_platform' => isset($data['payment_platform']) ? $data['payment_platform'] : null,
+        ':payment_status' => isset($data['payment_status']) ? $data['payment_status'] : 'pending',
+        ':fare_amount' => isset($data['fare_amount']) ? $data['fare_amount'] : null
     ]);
+
+    
 
     return $pdo->lastInsertId();
 }
@@ -31,7 +35,7 @@ function getPayments() {
     $stmt->execute();
 
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
-}
+}   
 
 function getPaymentById($id) {
     global $pdo;
@@ -84,3 +88,4 @@ function deletePayment($id) {
 
     return $stmt->rowCount() > 0;
 }
+

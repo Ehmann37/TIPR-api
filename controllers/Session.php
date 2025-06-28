@@ -73,3 +73,18 @@ function decryptData($token, $key, $maxAgeSeconds = 30) {
         return null; // Catch unexpected errors
     }
 }
+
+function checkPayment($paymentId) {
+    global $pdo;
+
+    $sql = "SELECT ticket_id, payment_status FROM payment WHERE payment_id = :payment_id";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute([':payment_id' => $paymentId]);
+    $payments = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    if (count($payments) > 0) {
+        return $payments; 
+    } else {
+        return 'not exist';
+    }
+}

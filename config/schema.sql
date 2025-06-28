@@ -80,13 +80,14 @@ CREATE TABLE bus (
 
 -- Payment
 CREATE TABLE payment (
-    payment_id INT AUTO_INCREMENT PRIMARY KEY,
     ticket_id INT,
+    payment_id VARCHAR(20),
     payment_mode VARCHAR(50),
     payment_platform VARCHAR(50), 
     fare_amount DECIMAL(10, 2),
     payment_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     payment_status ENUM('paid', 'pending') DEFAULT NULL,
+    PRIMARY KEY (ticket_id, payment_id),
     FOREIGN KEY (ticket_id) REFERENCES ticket(ticket_id)
 );
 

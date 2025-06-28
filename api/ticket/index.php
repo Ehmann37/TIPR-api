@@ -31,20 +31,22 @@ switch ($method) {
             }
 
             $tickets = getTickets($filters);
-            echo json_encode(['pass$passengerStatus' => 'success', 'data' => $tickets]);
+            echo json_encode(['status' => 'success', 'data' => $tickets]);
         } else {
             $ticket = getTicketById($id);
             if ($ticket) {
-                echo json_encode(['pass$passengerStatus' => 'success', 'data' => $ticket]);
+                echo json_encode(['status' => 'success', 'data' => $ticket]);
             } else {
                 http_response_code(404);
-                echo json_encode(['pass$passengerStatus' => 'error', 'message' => 'Ticket not found']);
+                echo json_encode(['status' => 'error', 'message' => 'Ticket not found']);
             }
         }
         break;
 
     case 'POST':
         $data = json_decode(file_get_contents("php://input"), true);
+
+        
 
         if (isset($data['payment'])) {
             $ticketData = $data;
@@ -60,7 +62,7 @@ switch ($method) {
                 }
             }
 
-            $requiredPaymentFields = ['payment_mode', 'payment_platform', 'fare_amount', 'payment_status'];
+            $requiredPaymentFields = ['fare_amount', 'payment_id'];
             foreach ($requiredPaymentFields as $field) {
                 if (!isset($paymentData[$field])) {
                     http_response_code(400);
@@ -69,8 +71,13 @@ switch ($method) {
                 }
             }
 
+            
+
             try {
                 $result = createTicketWithPayment($ticketData, $paymentData);
+
+
+                
                 echo json_encode(['status' => 'success', 'data' => $result]);
             } catch (Exception $e) {
                 http_response_code(500);
