@@ -29,6 +29,7 @@ function createTicketWithPayment($ticketData, $paymentData) {
 
 function addTicket($data) {
     global $pdo;
+    
 
     $sql = "INSERT INTO ticket (bus_id, origin_stop_id, destination_stop_id, full_name, seat_number, passenger_category, boarding_time, arrival_time, passenger_status, contact_info)
             VALUES (:bus_id, :origin_stop_id, :destination_stop_id, :full_name, :seat_number, :passenger_category, :boarding_time, :arrival_time, :passenger_status, :contact_info)";
@@ -43,9 +44,10 @@ function addTicket($data) {
         ':passenger_category' => $data['passenger_category'],
         ':passenger_status' => $data['passenger_status'],
         ':boarding_time' => $data['boarding_time'],
-        ':arrival_time' => isset($data['arrival_time']) ? $data['arrival_time'] : null
+        ':arrival_time' => isset($data['arrival_time']) ? $data['arrival_time'] : null,
         ':contact_info' => isset($data['contact_info']) ? $data['contact_info'] : null
     ]);
+
 
     return $pdo->lastInsertId();
 }

@@ -1,4 +1,7 @@
 <?php
+require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../models/TicketModel.php';
+
 date_default_timezone_set('Asia/Manila');
 
 function getCurrentTime() {
@@ -49,26 +52,26 @@ function decryptData($token, $key, $maxAgeSeconds = 30) {
         $decrypted = rtrim($decrypted, "\0");
 
         // Decode JSON
-        $data = json_decode($decrypted, true);
-        if (is_string($data)) {
+        $tripDetails = json_decode($decrypted, true);
+        if (is_string($tripDetails)) {
             // Case: Double-encoded JSON (e.g., "{\"key\":\"value\"}")
-            $data = json_decode($data, true);
+            $tripDetails = json_decode($tripDetails, true);
         } else {
             // Case: Normal JSON (e.g., {"key":"value"})
-            $data = $data;
+            $tripDetails = $tripDetails;
         }
 
         // Check if timestamp exists and is within the allowed age
-        if (isset($data['timestamp'])) {
+        if (isset($tripDetails['timestamp'])) {
             $currentTime = time();
-            $tokenTime = strtotime($data['timestamp']); // Convert datetime string to Unix timestamp
+            $tokenTime = strtotime($tripDetails['timestamp']); // Convert datetime string to Unix timestamp
 
             if ($tokenTime === false) return null; // Invalid timestamp format
 
             // if ($currentTime - $tokenTime > $maxAgeSeconds) return null; // token expired
         }
 
-        return $data;
+        return $tripDetails;
     } catch (Exception $e) {
         return null; // Catch unexpected errors
     }
@@ -82,9 +85,24 @@ function checkPayment($paymentId) {
     $stmt->execute([':payment_id' => $paymentId]);
     $payments = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    if (count($payments) > 0) {
-        return $payments; 
-    } else {
-        return 'not exist';
+    if (count($payments) === 0) {
+        return [
+            'state' => 'not exist',
+        ];
     }
+
+    $ticketDetails = [];
+    foreach ($payments as $row) {
+        $ticket = getTicketById($row['ticket_id']);
+        if ($ticket) {
+            unset($ticket['bus_id']);
+            unset($ticket['payment']['payment_status']);
+            $ticketDetails[] = $ticket;
+        }
+    }
+
+    return [
+        'state' => $payments[0]['payment_status'],
+        'passengers' => count($ticketDetails) > 0 ? $ticketDetails : null
+    ];
 }

@@ -5,7 +5,7 @@ function addPayment($data) {
     global $pdo;
 
     $sql = "INSERT INTO payment (ticket_id, payment_id, payment_mode, payment_platform, fare_amount, payment_status)
-            VALUES (:ticket_id, :payment_mode, :payment_platform, :fare_amount, :payment_status)";
+            VALUES (:ticket_id, :payment_id, :payment_mode, :payment_platform, :fare_amount, :payment_status)";
 
 
     $stmt = $pdo->prepare($sql);
@@ -19,8 +19,7 @@ function addPayment($data) {
     ]);
 
     
-
-    return $pdo->lastInsertId();
+    return $data['payment_id'] ?? $pdo->lastInsertId();
 }
 
 function getPayments() {

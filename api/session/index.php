@@ -50,19 +50,21 @@ switch ($method) {
             echo json_encode(['status' => 'success', 'stop_name' => $payload['current_stop'], 'token' => $encryptedParam]);
             break;
         } elseif (isset($data['id']) && isset($data['payment_id'])) {
-            $decryptedData = decryptData($data['id'], $KEY);
-            if ($decryptedData === null) {
+            $tripDetails = decryptData($data['id'], $KEY);
+            if ($tripDetails === null) {
                 http_response_code(400);
                 echo json_encode(['status' => 'error', 'message' => 'Invalid token']);
                 exit;
             }
 
-            $payment = checkPayment($data['payment_id']);
+            $passengerDetails = checkPayment($data['payment_id']);
 
             echo json_encode([
                 'status' => 'success',
-                'data' => $decryptedData,
-                'state' => $payment
+                'data' => [
+                    'trip_details' => $tripDetails,
+                    'passenger_details' => $passengerDetails
+                ]
             ]);
             break;
             
