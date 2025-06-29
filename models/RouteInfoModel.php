@@ -1,7 +1,6 @@
 <?php
 require_once __DIR__ . '/../config/db.php';
 
-// 🔍 Get all route information
 function getAllRoutesInfo()
 {
     global $pdo;
@@ -11,7 +10,6 @@ function getAllRoutesInfo()
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-// 🔍 Get a specific route info by ID
 function getRouteInfoById($route_id)
 {
     global $pdo;
@@ -21,7 +19,6 @@ function getRouteInfoById($route_id)
     return $stmt->fetch(PDO::FETCH_ASSOC);
 }
 
-// ➕ Add a new route information
 function addRouteInfo($data)
 {
     global $pdo;
@@ -34,7 +31,6 @@ function addRouteInfo($data)
     return $pdo->lastInsertId();
 }
 
-// ✏️ Update route information
 function updateRouteInfo($id, $data)
 {
     global $pdo;
@@ -48,7 +44,6 @@ function updateRouteInfo($id, $data)
     return $stmt->rowCount() > 0;
 }
 
-// 🗑️ Delete route information
 function deleteRouteInfo($route_id)
 {
     global $pdo;
