@@ -3,6 +3,7 @@ require_once __DIR__ . '/../middleware.php';
 require_once __DIR__ . '/../../controllers/Session.php';
 require_once __DIR__ . '/../../models/StopModel.php';
 require_once __DIR__ . '/../../models/BusModel.php';
+require_once __DIR__ . '/../../models/PaymentModel.php';
 
 
 checkAuthorization();
@@ -44,10 +45,15 @@ switch ($method) {
 
             $payload['timestamp'] = getCurrentTime();
             $payload['current_stop'] = $nearestStop['stop_name'];
-            $payload['bus_id'] = $data['bus_id'];
+            $payload['bus_id'] = $busId;
+            $payload['stops'] = getStopsByBusId($busId, $nearestStop['stop_id']);
+
 
             $encryptedParam = encryptData(json_encode($payload), $KEY);
-            echo json_encode(['status' => 'success', 'stop_name' => $payload['current_stop'], 'token' => $encryptedParam]);
+            echo json_encode([
+                'status' => 'success',
+                'stop_name' => $payload['current_stop'], 
+                'token' => $encryptedParam]);
             break;
         } elseif (isset($data['id']) && isset($data['payment_id'])) {
             $tripDetails = decryptData($data['id'], $KEY);

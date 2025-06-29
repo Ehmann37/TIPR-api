@@ -1,5 +1,7 @@
 <?php
 require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/TicketModel.php';
+require_once __DIR__ . '/StopModel.php';
 
 function addPayment($data) {
     global $pdo;
@@ -88,3 +90,34 @@ function deletePayment($id) {
     return $stmt->rowCount() > 0;
 }
 
+function checkPayment($paymentId) {
+    global $pdo;
+
+    $sql = "SELECT ticket_id, payment_status FROM payment WHERE payment_id = :payment_id";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute([':payment_id' => $paymentId]);
+    $payments = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    if (count($payments) === 0) {
+        return [
+            'state' => 'not exist',
+        ];
+    }
+
+    $ticketDetails = [];
+    foreach ($payments as $row) {
+        $ticket = getTicketById($row['ticket_id']);
+        if ($ticket) {
+            unset($ticket['bus_id']);
+            unset($ticket['payment']['payment_status']);
+            $ticketDetails[] = $ticket;
+        }
+    }
+
+    return [
+        'state' => $payments[0]['payment_status'],
+        'destination_name' => getStopById($ticketDetails[0]['destination_stop_id'])['stop_name'],
+        'contact_number' => $ticketDetails[0]['contact_info'] ?? null,
+        'passengers' => count($ticketDetails) > 0 ? $ticketDetails : null
+    ];
+}
