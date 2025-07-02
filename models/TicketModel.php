@@ -55,9 +55,9 @@ function addTicket($data) {
 function getTickets($filters = []) {
     global $pdo;
 
-    $sql = "SELECT pt.*, b.bus_id FROM ticket pt
-            LEFT JOIN bus b ON pt.bus_id = b.bus_id
-            LEFT JOIN payment p ON pt.ticket_id = p.ticket_id
+    $sql = "SELECT t.*, b.bus_id FROM ticket t
+            LEFT JOIN bus b ON t.bus_id = b.bus_id
+            LEFT JOIN payment p ON t.ticket_id = p.ticket_id
             WHERE 1=1";
 
     $busId = $filters['bus_id'] ?? null;
@@ -70,12 +70,12 @@ function getTickets($filters = []) {
    
 
     if ($busId !== null) {
-        $sql .= ' AND pt.bus_id = :bus_id';
+        $sql .= ' AND t.bus_id = :bus_id';
         $params[':bus_id'] = $busId;
     }
     
     if ($boardingStatus !== null) {
-        $sql .= ' AND pt.passengerStatus = :passengerStatus';
+        $sql .= ' AND t.passengerStatus = :passengerStatus';
         $params[':passengerStatus'] = $boardingStatus;
     }
 
@@ -85,7 +85,7 @@ function getTickets($filters = []) {
     }
 
 
-    $sql .= ' ORDER BY pt.ticket_id ASC';
+    $sql .= ' ORDER BY t.ticket_id ASC';
     
     $stmt = $pdo->prepare($sql);
     $stmt->execute($params);
@@ -123,9 +123,9 @@ function getPaymentFromTicket($id) {
 function getTicketById($id) {
     global $pdo;
     
-    $sql = "SELECT pt.*, b.bus_id FROM ticket pt
-            LEFT JOIN bus b ON pt.bus_id = b.bus_id
-            WHERE pt.ticket_id = :id";
+    $sql = "SELECT t.*, b.bus_id FROM ticket t
+            LEFT JOIN bus b ON t.bus_id = b.bus_id
+            WHERE t.ticket_id = :id";
     
     $stmt = $pdo->prepare($sql);
     $stmt->execute([':id' => $id]);

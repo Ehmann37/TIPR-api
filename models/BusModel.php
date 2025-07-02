@@ -64,26 +64,29 @@ function getBusById($id) {
 function updateBus($id, $data) {
     global $pdo;
 
-    $sql = "UPDATE bus SET 
-                route_id = :route_id,
-                company_id = :company_id,
-                bus_driver_id = :bus_driver_id,
-                status = :status
-                route_status = :route_status
-            WHERE bus_id = :bus_id";
+    $allowedFields = ['route_id', 'conductor_id', 'driver_id'];
+    $fieldsToUpdate = [];
+    $params = [':id' => $id];
 
+    foreach ($allowedFields as $field) {
+        if (isset($data[$field])) {
+            $column = $field;
+            $fieldsToUpdate[] = "$column = :$field";
+            $params[":$field"] = $data[$field];
+        }
+    }
+
+    if (empty($fieldsToUpdate)) {
+        return false; 
+    }
+
+    $sql = "UPDATE bus SET " . implode(', ', $fieldsToUpdate) . " WHERE bus_id = :id";
     $stmt = $pdo->prepare($sql);
-    $stmt->execute([
-        ':route_id' => $data['route_id'],
-        ':company_id' => $data['company_id'],
-        ':bus_driver_id' => $data['bus_driver_id'],
-        ':status' => $data['status'],
-        ':route_status' => $data['route_status'],
-        ':bus_id' => intval($id)
-    ]);
+    $stmt->execute($params);
 
     return $stmt->rowCount() > 0;
 }
+
 
 function deleteBus($id) {
     global $pdo;

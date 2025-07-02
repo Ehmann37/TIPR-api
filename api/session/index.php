@@ -23,7 +23,6 @@ switch ($method) {
             exit;
         }
         $data = json_decode($input, true);
-        
 
         if (isset($data['latitude']) && isset($data['longitude']) && isset($data['bus_id'])) {
             if (!is_numeric($data['bus_id']) || intval($data['bus_id']) != $data['bus_id']) {
@@ -44,15 +43,13 @@ switch ($method) {
             }
 
             $payload['timestamp'] = getCurrentTime();
-            $payload['current_stop'] = $nearestStop['stop_name'];
             $payload['bus_id'] = $busId;
-            $payload['stops'] = getStopsByBusId($busId, $nearestStop['stop_id']);
-
+            $payload['stop_id'] = $nearestStop['stop_id'];
 
             $encryptedParam = encryptData(json_encode($payload), $KEY);
             echo json_encode([
                 'status' => 'success',
-                'stop_name' => $payload['current_stop'], 
+                'stop_name' => $nearestStop['stop_name'], 
                 'token' => $encryptedParam]);
             break;
         } elseif (isset($data['id']) && isset($data['payment_id'])) {
@@ -63,7 +60,17 @@ switch ($method) {
                 exit;
             }
 
+            $tripDetails['current_stop'] = getStopById($tripDetails['stop_id'])['stop_name'] ?? null;
+            $tripDetails['stops'] = getStopsByBusId($tripDetails['bus_id'], $tripDetails['stop_id']);
+
+            unset($tripDetails['stop_id']);
+
             $passengerDetails = checkPayment($data['payment_id']);
+            if (!$passengerDetails) {
+                http_response_code(404);
+                echo json_encode(['status' => 'error', 'message' => 'Payment not found']);
+                exit;
+            }
 
             echo json_encode([
                 'status' => 'success',
@@ -78,7 +85,7 @@ switch ($method) {
             http_response_code(400);
             echo json_encode(['status' => 'error', 'message' => 'Invalid request structure']);
         }
-
+        break;
     default:
         http_response_code(405);
         header('Allow: GET, POST');

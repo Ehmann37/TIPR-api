@@ -37,7 +37,7 @@ function getStopsByBusId($busId, $currentStopId) {
     if ($currentOrder === false) return []; 
 
     $sqlStops = "
-        SELECT s.stop_name
+        SELECT s.stop_name, s.stop_id
         FROM route r
         JOIN stop s ON r.stop_id = s.stop_id
         WHERE r.route_id = :route_id
