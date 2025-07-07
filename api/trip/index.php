@@ -17,16 +17,36 @@ switch($method){
         echo json_encode(['status' => 'error', 'message' => 'Empty request body']);
         exit;
     }
-    
 
-    
-    if (isset($data['bus_id']) && isset($data['status'])) {
+
+    if (isset($data['status']) && isset($data['bus_id'])) { 
+      if (!in_array($data['status'], ['active', 'complete'])) {
+          http_response_code(400);
+          echo json_encode(['status' => 'error', 'message' => 'Invalid status. Must be "active" or "complete".']);
+          exit;
+      }
+
+      if ($data['status'] === 'complete') {
+        $update = completeInstatnce($data['bus_id'], $data['status']);
+        if (!$update) {
+            echo json_encode(['status' => 'error', 'message' => 'No active trip found for the bus']);
+            exit;
+        }
+      } 
+
+      else if ($data['status'] === 'active') {
+        if (checkBusifActive($data['bus_id'])) {
+            echo json_encode(['status' => 'error', 'message' => 'Bus is already active']);
+            exit;
+        }
+        $update = createInstance($data['bus_id'], $data['status']);
+      }
       
-      $update = updateTripStatus($data['bus_id'], $data['status']);
-    } else {
-      
-        $update = null;
-    }
+      else {
+          $update = null;
+      }
+    } 
+
 
     if ($update) {
         echo json_encode([

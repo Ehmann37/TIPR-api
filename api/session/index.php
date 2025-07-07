@@ -46,8 +46,13 @@ switch ($method) {
             $payload['timestamp'] = getCurrentTime();
             $payload['bus_id'] = $busId;
             $payload['stop_id'] = $nearestStop['stop_id'];
-            $payload['trip_id'] = generateTripId($busId, $nearestStop['stop_id'], $payload['timestamp']);
+            $payload['trip_id'] = getActiveTrip($busId, $nearestStop['stop_id'], $payload['timestamp']);
 
+
+            if ($payload['trip_id'] == NULL){
+                echo json_encode(['status' => 'error', 'message' => 'no active trip for the bus']);
+                exit;
+            }
             $encryptedParam = encryptData(json_encode($payload), $KEY);
             echo json_encode([
                 'status' => 'success',

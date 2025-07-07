@@ -116,7 +116,7 @@ function checkPayment($paymentId) {
 
     return [
         'state' => $payments[0]['payment_status'],
-        'destination_name' => getStopById($ticketDetails[0]['destination_stop_id'])['stop_name'],
+        'destination_id' => $ticketDetails[0]['destination_stop_id'],
         'contact_number' => $ticketDetails[0]['contact_info'] ?? null,
         'passengers' => count($ticketDetails) > 0 ? $ticketDetails : null
     ];

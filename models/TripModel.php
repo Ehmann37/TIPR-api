@@ -1,7 +1,8 @@
 <?php
 require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../controllers/Session.php';
 
-function generateTripId($bus_id, $stop_id, $timestamp) {
+function getActiveTrip($bus_id, $stop_id, $timestamp) {
   global $pdo;
 
   $sql = "SELECT trip_id FROM trip WHERE bus_id = :bus_id AND status = 'active' ORDER BY boarding_time DESC LIMIT 1";
@@ -11,7 +12,30 @@ function generateTripId($bus_id, $stop_id, $timestamp) {
 
   if ($existingTripId) {
       return $existingTripId;
+  } else {
+    return false;
   }
+}
+
+
+function completeInstatnce($bus_id, $status) {
+  global $pdo;
+
+  $sql = "SELECT trip_id FROM trip WHERE bus_id = :bus_id AND status = 'active'";
+  $stmt = $pdo->prepare($sql);
+  $stmt->execute([':bus_id' => $bus_id]);
+  $trip_id = $stmt->fetchColumn();
+
+
+  $sql = "UPDATE trip SET status = :status, arrival_time = now() WHERE trip_id = :trip_id";
+  $stmt = $pdo->prepare($sql);
+  $stmt->execute([':status' => $status, ':trip_id' => $trip_id]);
+
+  return $stmt->rowCount() > 0;
+}
+
+function createInstance($bus_id, $status) {
+  global $pdo;
 
   $sql = "SELECT route_id, driver_id, conductor_id FROM bus WHERE bus_id = :bus_id";
   $stmt = $pdo->prepare($sql);
@@ -31,23 +55,21 @@ function generateTripId($bus_id, $stop_id, $timestamp) {
       ':route_id' => $busInfo['route_id'],
       ':driver_id' => $busInfo['driver_id'],
       ':conductor_id' => $busInfo['conductor_id'],
-      ':boarding_time' => $timestamp,
+      ':boarding_time' => getCurrentTime(),
       ':status' => 'active'
   ]);
 
-  return $pdo->lastInsertId();
+  return $stmt->rowCount() > 0;
 }
 
 
-function updateTripStatus($bus_id, $status) {
+function checkBusifActive($bus_id) {
   global $pdo;
 
-  $sql = "UPDATE trip SET status = :status, arrival_time = now() WHERE bus_id = :bus_id";
+  $sql = "SELECT trip_id FROM trip WHERE bus_id = :bus_id AND status = 'active'";
   $stmt = $pdo->prepare($sql);
-  $stmt->execute([':status' => $status, ':bus_id' => $bus_id]);
-
-
-  return $stmt->rowCount() > 0;
+  $stmt->execute([':bus_id' => $bus_id]);
+  return $stmt->fetchColumn() !== false;
 }
 
 ?>
