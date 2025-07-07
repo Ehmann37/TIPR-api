@@ -31,8 +31,8 @@ function addTicket($data) {
     global $pdo;
     
 
-    $sql = "INSERT INTO ticket (bus_id, origin_stop_id, destination_stop_id, full_name, seat_number, passenger_category, boarding_time, arrival_time, passenger_status, contact_info)
-            VALUES (:bus_id, :origin_stop_id, :destination_stop_id, :full_name, :seat_number, :passenger_category, :boarding_time, :arrival_time, :passenger_status, :contact_info)";
+    $sql = "INSERT INTO ticket (bus_id, origin_stop_id, destination_stop_id, full_name, seat_number, passenger_category, boarding_time, arrival_time, passenger_status, contact_info, trip_id)
+            VALUES (:bus_id, :origin_stop_id, :destination_stop_id, :full_name, :seat_number, :passenger_category, :boarding_time, :arrival_time, :passenger_status, :contact_info, :trip_id)";
 
     $stmt = $pdo->prepare($sql);
     $stmt->execute([
@@ -45,7 +45,8 @@ function addTicket($data) {
         ':passenger_status' => $data['passenger_status'],
         ':boarding_time' => $data['boarding_time'],
         ':arrival_time' => isset($data['arrival_time']) ? $data['arrival_time'] : null,
-        ':contact_info' => isset($data['contact_info']) ? $data['contact_info'] : null
+        ':contact_info' => isset($data['contact_info']) ? $data['contact_info'] : null,
+        ':trip_id' => $data['trip_id']
     ]);
 
 

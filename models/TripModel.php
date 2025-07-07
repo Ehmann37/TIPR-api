@@ -72,4 +72,14 @@ function checkBusifActive($bus_id) {
   return $stmt->fetchColumn() !== false;
 }
 
+function incrementTotalPassengers($trip_id) {
+  global $pdo;
+
+  $sql = "UPDATE trip SET total_passenger = total_passenger + 1 WHERE trip_id = :trip_id";
+  $stmt = $pdo->prepare($sql);
+  $stmt->execute([':trip_id' => $trip_id]);
+
+  echo json_encode(['status' => 'success', 'message' => 'Total passengers incremented successfully']);
+}
+
 ?>

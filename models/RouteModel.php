@@ -1,8 +1,7 @@
 <?php
 require_once __DIR__ . '/../config/db.php';
 
-function addRouteStop($data)
-{
+function addRouteStop($data){
     global $pdo;
     $sql = "INSERT INTO route (route_id, stop_id, stop_order) VALUES (?, ?, ?)";
     $stmt = $pdo->prepare($sql);
@@ -13,8 +12,7 @@ function addRouteStop($data)
     ]);
 }
 
-function getAllRouteStops()
-{
+function getAllRouteStops(){
     global $pdo;
     $sql = "SELECT * FROM route ORDER BY route_id, stop_order";
     $stmt = $pdo->prepare($sql);
@@ -22,8 +20,7 @@ function getAllRouteStops()
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-function getRouteStopsByRouteId($route_id)
-{
+function getRouteStopsByRouteId($route_id){
     global $pdo;
     
     $RouteInfoSQL = "SELECT route_name, schedule_id FROM route_information WHERE route_id = ?";
@@ -52,8 +49,7 @@ function getRouteStopsByRouteId($route_id)
 }
 
 
-function updateRouteStop($route_id, $data)
-{
+function updateRouteStop($route_id, $data){
     global $pdo;
     $sql = "UPDATE route SET stop_order = ? WHERE route_id = ? AND stop_id = ?";
     $stmt = $pdo->prepare($sql);
@@ -64,8 +60,7 @@ function updateRouteStop($route_id, $data)
     ]);
 }
 
-function deleteRouteStop($route_id, $stop_id)
-{
+function deleteRouteStop($route_id, $stop_id){
     global $pdo;
     $sql = "DELETE FROM route WHERE route_id = ? AND stop_id = ?";
     $stmt = $pdo->prepare($sql);
@@ -73,8 +68,7 @@ function deleteRouteStop($route_id, $stop_id)
     return $stmt->rowCount() > 0;
 }
 
-function deleteRouteStopsByRouteId($route_id)
-{
+function deleteRouteStopsByRouteId($route_id){
     global $pdo;
     $sql = "DELETE FROM route WHERE route_id = ?";
     $stmt = $pdo->prepare($sql);

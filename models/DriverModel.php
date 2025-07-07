@@ -4,7 +4,7 @@ require_once __DIR__ . '/../config/db.php';
 function addDriver($data) {
     global $pdo;
 
-    $sql = "INSERT INTO bus_driver (company_id, first_name, last_name, license_number, contact_info)
+    $sql = "INSERT INTO driver (company_id, first_name, last_name, license_number, contact_info)
             VALUES (:company_id, :first_name, :last_name, :license_number, :contact_info)";
 
     $stmt = $pdo->prepare($sql);
@@ -22,7 +22,9 @@ function addDriver($data) {
 function getDrivers() {
     global $pdo;
 
-    $sql = "SELECT * FROM bus_driver ORDER BY driver_id ASC";
+    $sql = "SELECT driver.*, user.full_name, user.contact_info FROM driver
+    INNER JOIN user ON driver.driver_id = user.user_id
+    ORDER BY driver.driver_id ASC";
     $stmt = $pdo->prepare($sql);
     $stmt->execute();
 
@@ -31,7 +33,11 @@ function getDrivers() {
 
 function getDriverById($id) {
     global $pdo;
-    $sql = "SELECT * FROM bus_driver WHERE driver_id = :id";
+    $sql = "SELECT driver.*, user.full_name, user.contact_info FROM driver
+    INNER JOIN user ON driver.driver_id = user.user_id
+    WHERE driver_id = :id
+    ORDER BY driver.driver_id ASC";
+
     $stmt = $pdo->prepare($sql);
     $stmt->execute([':id' => $id]);
     return $stmt->fetch(PDO::FETCH_ASSOC);
@@ -40,7 +46,7 @@ function getDriverById($id) {
 function updateDriver($id, $data) {
     global $pdo;
 
-    $sql = "UPDATE bus_driver SET 
+    $sql = "UPDATE driver SET 
                 company_id = :company_id,
                 first_name = :first_name,
                 last_name = :last_name,
@@ -64,7 +70,7 @@ function updateDriver($id, $data) {
 function deleteDriver($id) {
     global $pdo;
 
-    $sql = "DELETE FROM bus_driver WHERE driver_id = :id";
+    $sql = "DELETE FROM driver WHERE driver_id = :id";
     $stmt = $pdo->prepare($sql);
     $stmt->execute([':id' => $id]);
 

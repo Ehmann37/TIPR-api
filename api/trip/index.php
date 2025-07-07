@@ -58,6 +58,4 @@ switch($method){
         echo json_encode(['status' => 'error', 'message' => 'Failed to update trip status']);
     }
 }
-
-
 ?>

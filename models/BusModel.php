@@ -117,3 +117,18 @@ function checkBusExists($busId){
         exit;
     }
 }
+
+function incrementBusPassengerCount($busId) {
+    global $pdo;
+
+    $stmt = $pdo->prepare("UPDATE bus SET passenger_count = passenger_count + 1 WHERE bus_id = ?");
+    $stmt->execute([$busId]);
+        
+}
+
+function decrementBusPassengerCount($ticket_id){
+    global $pdo;
+
+    $stmt = $pdo->prepare("UPDATE bus SET passenger_count = passenger_count - 1 WHERE bus_id = (SELECT bus_id FROM ticket WHERE ticket_id = ?)");
+    $stmt->execute([$ticket_id]);
+}

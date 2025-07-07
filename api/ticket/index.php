@@ -2,6 +2,9 @@
 require_once __DIR__ . '/../middleware.php';
 require_once __DIR__ . '/../../models/TicketModel.php';
 require_once __DIR__ . '/../../models/PaymentModel.php';
+require_once __DIR__ . '/../../models/TripModel.php';
+require_once __DIR__ . '/../../models/BusModel.php';
+
 
 checkAuthorization();
 
@@ -53,7 +56,8 @@ switch ($method) {
             $paymentData = $data['payment'];
             unset($ticketData['payment']);
 
-            $requiredTicketFields = ['bus_id', 'origin_stop_id', 'destination_stop_id', 'full_name', 'seat_number', 'passenger_category', 'passenger_status', 'boarding_time'];
+            $requiredTicketFields = ['bus_id', 'origin_stop_id', 'destination_stop_id', 'full_name', 'seat_number', 'passenger_category', 'passenger_status', 'boarding_time', 'trip_id'];
+
             foreach ($requiredTicketFields as $field) {
                 if (!isset($ticketData[$field])) {
                     http_response_code(400);
@@ -72,12 +76,14 @@ switch ($method) {
             }
 
             
-
             try {
                 $result = createTicketWithPayment($ticketData, $paymentData);
 
+                if ($result !== null) {
+                    incrementTotalPassengers($ticketData['trip_id']);
+                    incrementBusPassengerCount($ticketData['bus_id']);
+                }
 
-                
                 echo json_encode(['status' => 'success', 'data' => $result]);
             } catch (Exception $e) {
                 http_response_code(500);
@@ -103,10 +109,15 @@ switch ($method) {
             echo json_encode(['status' => 'error', 'message' => 'No data provided to update']);
             exit;
         }
+
         
         try {
             $result = updateTicket($id, $data);
             if ($result['success']){
+                if ($data['passenger_status'] === "left_bus"){
+                    decrementBusPassengerCount($id);
+                }
+
                 echo json_encode([
                     'status' => 'success',
                     'message' => 'Update Successful',
