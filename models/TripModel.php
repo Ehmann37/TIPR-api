@@ -2,7 +2,7 @@
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../controllers/Session.php';
 
-function getActiveTrip($bus_id, $stop_id, $timestamp) {
+function getActiveTrip($bus_id) {
   global $pdo;
 
   $sql = "SELECT trip_id FROM trip WHERE bus_id = :bus_id AND status = 'active' ORDER BY boarding_time DESC LIMIT 1";
@@ -16,7 +16,6 @@ function getActiveTrip($bus_id, $stop_id, $timestamp) {
     return false;
   }
 }
-
 
 function completeInstatnce($bus_id, $status) {
   global $pdo;

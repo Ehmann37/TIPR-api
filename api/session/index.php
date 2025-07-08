@@ -46,7 +46,7 @@ switch ($method) {
             $payload['timestamp'] = getCurrentTime();
             $payload['bus_id'] = $busId;
             $payload['stop_id'] = $nearestStop['stop_id'];
-            $payload['trip_id'] = getActiveTrip($busId, $nearestStop['stop_id'], $payload['timestamp']);
+            $payload['trip_id'] = getActiveTrip($busId);
 
 
             if ($payload['trip_id'] == NULL){

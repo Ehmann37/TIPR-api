@@ -148,6 +148,26 @@ function getTicketById($id) {
     return $ticket;
 }
 
+function getTicketsByLocation($stop_id, $trip_id){
+    global $pdo;
+
+    $sql = "SELECT * FROM ticket WHERE destination_stop_id = :stop_id AND trip_id = :trip_id";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute([
+        ':stop_id' => $stop_id,
+        ':trip_id' => $trip_id
+    ]);
+
+    $tickets = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    foreach ($tickets as &$ticket) {
+        $payment = getPaymentFromTicket($ticket['ticket_id']);
+        $ticket['payment'] = $payment ? $payment : null;
+    }
+
+    return $tickets;
+}
+
 function updateTicket($id, $data) {
     global $pdo;
 
