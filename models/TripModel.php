@@ -1,11 +1,11 @@
 <?php
 require_once __DIR__ . '/../config/db.php';
-require_once __DIR__ . '/../controllers/Session.php';
+require_once __DIR__ . '/../utils/TimeUtils.php';
 
 function getActiveTrip($bus_id) {
   global $pdo;
 
-  $sql = "SELECT trip_id FROM trip WHERE bus_id = :bus_id AND status = 'active' ORDER BY boarding_time DESC LIMIT 1";
+  $sql = "SELECT trip_id FROM trip WHERE bus_id = :bus_id AND status = 'active'";
   $stmt = $pdo->prepare($sql);
   $stmt->execute([':bus_id' => $bus_id]);
   $existingTripId = $stmt->fetchColumn();
@@ -78,7 +78,6 @@ function incrementTotalPassengers($trip_id) {
   $stmt = $pdo->prepare($sql);
   $stmt->execute([':trip_id' => $trip_id]);
 
-  echo json_encode(['status' => 'success', 'message' => 'Total passengers incremented successfully']);
 }
 
 ?>

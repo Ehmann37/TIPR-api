@@ -29,6 +29,10 @@ CREATE table conductor (
     
 -- }
 
+--bus - routeid
+--ticket - origin and dest id\
+--trip-routeid
+
 
 
 -- Stop
@@ -61,7 +65,6 @@ CREATE TABLE route (
     stop_id INT,
     stop_order INT,
     PRIMARY KEY (route_id, stop_order),
-    FOREIGN KEY (route_id) REFERENCES route_information(route_id),
     FOREIGN KEY (stop_id) REFERENCES stop(stop_id)
 );
 
@@ -128,6 +131,7 @@ CREATE TABLE trip (
     arrival_time DATETIME,
     total_passenger INT,
     total_revenue INT,
+    status ENUM('active', 'completed')
     FOREIGN KEY (route_id) REFERENCES route(route_id),
     FOREIGN KEY (bus_id) REFERENCES bus(bus_id),
     FOREIGN KEY (driver_id) REFERENCES user(user_id),

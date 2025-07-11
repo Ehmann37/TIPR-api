@@ -1,6 +1,68 @@
 <?php
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/PaymentModel.php';
+require_once __DIR__ . '/../utils/DBUtils.php';
+
+function getTickets($filters = []) {
+    global $pdo;
+
+    $params = [];
+    $where = buildWhereClause([
+        'bus_id' => $filters['bus_id'] ?? null;
+        'boarding_status' => $filters['passengerStatus'] ?? null;
+        'payment_status' => $filters['payment_status'] ?? null;
+    ], $params);
+
+
+    $sql = "SELECT t.*, b.bus_id, s_orig.stop_name AS origin_stop_name, s_dest.stop_name AS destination_stop_name, p.*
+        FROM ticket t
+        LEFT JOIN stop s_orig ON t.origin_stop_id = s_orig.stop_id
+        LEFT JOIN stop s_dest ON t.destination_stop_id = s_dest.stop_id
+        LEFT JOIN bus b ON t.bus_id = b.bus_id
+        LEFT JOIN payment p ON t.payment_id = p.payment_id
+        WHERE 1=1 $where ORDER BY t.ticket_id ASC";
+
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+function getTicketPaymentId($paymentId) {
+    global $pdo;
+
+    $paymentSql = "SELECT * FROM payment WHERE payment_id = :payment_id";
+    $paymentStmt = $pdo->prepare($paymentSql);
+    $paymentStmt->execute([':payment_id' => $paymentId]);
+    $payment = $paymentStmt->fetch(PDO::FETCH_ASSOC);
+
+    $ticketSql = "SELECT * FROM ticket WHERE payment_id = :payment_id";
+    $ticketStmt = $pdo->prepare($ticketSql);
+    $ticketStmt->execute([':payment_id' => $paymentId]);
+    $tickets = $ticketStmt->fetchAll(PDO::FETCH_ASSOC);
+
+    return [
+        'payment' => $payment,
+        'tickets' => $tickets
+    ];
+}
+
+function getTicketByTicketId($ticketId) {
+    global $pdo;
+    
+    $sql = "SELECT t.*,p.* FROM ticket t
+            JOIN payment p ON t.payment_id = p.payment_id
+            WHERE t.ticket_id = :ticket_id";
+    
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute([':ticket_id' => $paymentId]);
+    return $stmt->fetch(PDO::FETCH_ASSOC);
+}
+
+function checkTicketExists($id) {
+    return checkExists('ticket', 'ticket_id', $id);
+}
+
+
 
 function createTicketWithPayment($ticketData, $paymentData) {
     global $pdo;
@@ -53,100 +115,6 @@ function addTicket($data) {
     return $pdo->lastInsertId();
 }
 
-function getTickets($filters = []) {
-    global $pdo;
-
-    $sql = "SELECT t.*, b.bus_id FROM ticket t
-            LEFT JOIN bus b ON t.bus_id = b.bus_id
-            LEFT JOIN payment p ON t.ticket_id = p.ticket_id
-            WHERE 1=1";
-
-    $busId = $filters['bus_id'] ?? null;
-    $boardingStatus = $filters['passengerStatus'] ?? null;
-    $payment_status = $filters['payment_status'] ?? null;
-
-
-    $params = [];
-    
-   
-
-    if ($busId !== null) {
-        $sql .= ' AND t.bus_id = :bus_id';
-        $params[':bus_id'] = $busId;
-    }
-    
-    if ($boardingStatus !== null) {
-        $sql .= ' AND t.passengerStatus = :passengerStatus';
-        $params[':passengerStatus'] = $boardingStatus;
-    }
-
-    if ($payment_status !== null) {
-        $sql .= ' AND p.payment_status = :payment_status';
-        $params[':payment_status'] = $payment_status;
-    }
-
-
-    $sql .= ' ORDER BY t.ticket_id ASC';
-    
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute($params);
-    $tickets = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    
-    if (empty($tickets)) {
-        return [];
-    }
-    
-    $result = [];
-    foreach ($tickets as $ticket) {
-        $payment = getPaymentFromTicket($ticket['ticket_id']);
-        
-        if ($payment && isset($payment['ticket_id'])) {
-            unset($payment['ticket_id']);
-        }
-        
-        $ticket['payment'] = $payment ?: null;
-        $result[] = $ticket;
-    }
-    
-    return $result;
-}
-
-function getPaymentFromTicket($id) {
-    global $pdo;
-    
-    $sql = "SELECT * FROM payment WHERE ticket_id = :id";
-    
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute([':id' => $id]);
-    return $stmt->fetch(PDO::FETCH_ASSOC);
-}
-
-function getTicketById($id) {
-    global $pdo;
-    
-    $sql = "SELECT t.*, b.bus_id FROM ticket t
-            LEFT JOIN bus b ON t.bus_id = b.bus_id
-            WHERE t.ticket_id = :id";
-    
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute([':id' => $id]);
-    $ticket = $stmt->fetch(PDO::FETCH_ASSOC);
-    
-    if (!$ticket) {
-        return null; 
-    }
-    
-    $payment = getPaymentFromTicket($id);
-    
-    if ($payment) {
-        unset($payment['ticket_id']);
-        $ticket['payment'] = $payment;
-    } else {
-        $ticket['payment'] = null; 
-    }
-    
-    return $ticket;
-}
 
 function getTicketsByLocation($stop_id, $trip_id){
     global $pdo;
@@ -212,18 +180,5 @@ function updateTicket($id, $data) {
     ];
 }
 
-function deleteTicket($id) {
-    global $pdo;
-
-    $sql = "DELETE FROM payment WHERE ticket_id = :ticket_id";
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute([':ticket_id' => $id]);
-
-    $sql = "DELETE FROM ticket WHERE ticket_id = :id";
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute([':id' => $id]);
-
-    return $stmt->rowCount() > 0;
-}
 
 

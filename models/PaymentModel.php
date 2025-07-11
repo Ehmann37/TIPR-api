@@ -24,33 +24,6 @@ function addPayment($data) {
     return $data['payment_id'] ?? $pdo->lastInsertId();
 }
 
-function getPayments() {
-    global $pdo;
-
-    $sql = "SELECT p.*, pt.full_name, pt.seat_number
-            FROM payment p
-            LEFT JOIN ticket pt ON p.ticket_id = pt.ticket_id
-            ORDER BY p.payment_id DESC";
-    
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute();
-
-    return $stmt->fetchAll(PDO::FETCH_ASSOC);
-}   
-
-function getPaymentById($id) {
-    global $pdo;
-    
-    $sql = "SELECT p.*, pt.full_name, pt.seat_number
-            FROM payment p
-            LEFT JOIN ticket pt ON p.ticket_id = pt.ticket_id
-            WHERE p.payment_id = :id";
-    
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute([':id' => $id]);
-    return $stmt->fetch(PDO::FETCH_ASSOC);
-}
-
 function updatePayment($id, $data) {
     global $pdo;
 
@@ -80,44 +53,6 @@ function updatePayment($id, $data) {
     return $stmt;
 }
 
-function deletePayment($id) {
-    global $pdo;
-
-    $sql = "DELETE FROM payment WHERE payment_id = :id";
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute([':id' => $id]);
-
-    return $stmt->rowCount() > 0;
-}
-
-function checkPayment($paymentId) {
-    global $pdo;
-
-    $sql = "SELECT ticket_id, payment_status FROM payment WHERE payment_id = :payment_id";
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute([':payment_id' => $paymentId]);
-    $payments = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-    if (count($payments) === 0) {
-        return [
-            'state' => 'not exist',
-        ];
-    }
-
-    $ticketDetails = [];
-    foreach ($payments as $row) {
-        $ticket = getTicketById($row['ticket_id']);
-        if ($ticket) {
-            unset($ticket['bus_id']);
-            unset($ticket['payment']['payment_status']);
-            $ticketDetails[] = $ticket;
-        }
-    }
-
-    return [
-        'state' => $payments[0]['payment_status'],
-        'destination_id' => $ticketDetails[0]['destination_stop_id'],
-        'contact_number' => $ticketDetails[0]['contact_info'] ?? null,
-        'passengers' => count($ticketDetails) > 0 ? $ticketDetails : null
-    ];
+function checkPaymentExists($id) {
+    return checkExists('payment', 'payment_id', $id);
 }
