@@ -1,14 +1,14 @@
 <?php
 
-require_once __DIR__ . '/../../models/TicketModel.php';
-require_once __DIR__ . '/../../models/PaymentModel.php';
-require_once __DIR__ . '/../../models/TripModel.php';
-require_once __DIR__ . '/../../models/BusModel.php';
-require_once __DIR__ . '/../../models/StopModel.php';
-require_once __DIR__ . '/../../utils/RequestUtils.php';
-require_once __DIR__ . '/../../utils/QueryUtils.php';
-require_once __DIR__ . '/../../utils/ValidationUtils.php';
-require_once __DIR__ . '/../../utils/ResponseUtils.php';
+require_once __DIR__ . '/../models/TicketModel.php';
+require_once __DIR__ . '/../models/PaymentModel.php';
+require_once __DIR__ . '/../models/TripModel.php';
+require_once __DIR__ . '/../models/BusModel.php';
+require_once __DIR__ . '/../models/StopModel.php';
+require_once __DIR__ . '/../utils/RequestUtils.php';
+require_once __DIR__ . '/../utils/QueryUtils.php';
+require_once __DIR__ . '/../utils/ValidationUtils.php';
+require_once __DIR__ . '/../utils/ResponseUtils.php';
 
 
 function handleGetTicket($queryParams) {
@@ -80,7 +80,7 @@ function handleGetTicket($queryParams) {
       }
 
     } else {
-      $allowed = ['bus_id', 'passenger_status', 'payment_status'];
+      $allowed = ['bus_id', 'passenger_status', 'payment_status', 'passenger_category'];
       $filters = buildFilters($queryParams, $allowed);
       $tickets = getTickets($filters);
       if (count($tickets) === 0) {
@@ -103,5 +103,38 @@ function handleCreateTicket() {
     return;
   }
 
-  
+
+}
+
+function updateTicketHandler($ticket_id){
+  if ($ticket_id === null) {
+    respond(400, 'Missing ticket ID');
+    return;
+  }
+
+  $data = sanitizeInput(getRequestBody());
+
+  $allowed = ['passenger_category', 'seat_number', 'payment_status'];
+  if (!validateAtLeastOneField($data, $allowed)) {
+    respond(400, 'No valid fields provided for update');
+    return;
+  }
+
+  if (isset($data['payment_status'])) {
+    $payment = updatePayment($ticket_id, $data, $allowed);
+    if ($payment) {
+      respond (200, 'Payment updated successfully');
+    } else {
+      respond(404, 'Payment not found or no changes made');
+      return;
+    }
+  } else {
+    $ticket = updateTicket($ticket_id, $data, $allowed);
+    if ($ticket) {
+      respond(200, 'Ticket updated successfully');
+    } else {
+      respond(404, 'Ticket not found or no changes made');
+      return;
+    }
+  }
 }

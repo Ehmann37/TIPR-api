@@ -2,6 +2,7 @@
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/TicketModel.php';
 require_once __DIR__ . '/StopModel.php';
+require_once __DIR__ . '/../utils/DBUtils.php';
 
 function addPayment($data) {
     global $pdo;
@@ -24,33 +25,15 @@ function addPayment($data) {
     return $data['payment_id'] ?? $pdo->lastInsertId();
 }
 
-function updatePayment($id, $data) {
+function updatePayment($ticket_id, $data, $allowedFields) {
     global $pdo;
 
-    $fieldsToUpdate = [];
-    $params = [];
-
-    $allowedFields = ['payment_status'];
-
-    foreach ($allowedFields as $field) {
-        if (isset($data[$field])) {
-            $fieldsToUpdate[] = "$field = :$field";
-            $params[":$field"] = $data[$field];
-        }
-    }
-
-    if (empty($fieldsToUpdate)) {
-        return false; 
-    }
-
-
-    $sql = "UPDATE payment SET " . implode(", ", $fieldsToUpdate) . " WHERE ticket_id = :ticket_id";
-    $params[':ticket_id'] = $id;
-
+    $sql = "Select payment_id FROM ticket WHERE ticket_id = :ticket_id";
     $stmt = $pdo->prepare($sql);
-    $stmt->execute($params);
+    $stmt->execute([':ticket_id' => $ticket_id]);
+    $payment_id = $stmt->fetchColumn();
 
-    return $stmt;
+    return updateRecord('payment', 'payment_id', $payment_id, $data, $allowedFields);
 }
 
 function checkPaymentExists($id) {

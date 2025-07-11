@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../middleware.php';
+require_once __DIR__ . '/../../controllers/TicketController.php';
 require_once __DIR__ . '/../../utils/RequestUtils.php';
 require_once __DIR__ . '/../../utils/ResponseUtils.php';
 
@@ -12,7 +13,7 @@ $method = $_SERVER['REQUEST_METHOD'];
 
 switch ($method) {
     case 'GET':
-        $queryParams = getQueryParams(['ticket_id', 'payment_id', 'bus_id', 'passenger_status', 'payment_status', 'latitud', 'longitude']);
+        $queryParams = getQueryParams(['ticket_id', 'payment_id', 'bus_id', 'passenger_status', 'payment_status', 'passenger_category', 'latitude', 'longitude']);
         handleGetTicket($queryParams);
         break;
 
@@ -70,53 +71,9 @@ switch ($method) {
         break;
 
     case 'PUT':
-        if ($id === null) {
-            http_response_code(400);
-            echo json_encode(['status' => 'error', 'message' => 'Missing ticket ID']);
-            exit;
-        }
-
-        $data = json_decode(file_get_contents("php://input"), true);
-
-        if ($data === null){
-            http_response_code(400);
-            echo json_encode(['status' => 'error', 'message' => 'No data provided to update']);
-            exit;
-        }
-
-        
-        try {
-            $result = updateTicket($id, $data);
-            if ($result['success']){
-                if ($data['passenger_status'] === "left_bus"){
-                    decrementBusPassengerCount($id);
-                }
-
-                echo json_encode([
-                    'status' => 'success',
-                    'message' => 'Update Successful',
-                    'details' => [
-                        'ticket_updated' => $result['ticket_updated'],
-                        'payment_updated' => $result['payment_updated']
-                    ]
-                ]);
-            } else {
-                http_response_code(404);
-                echo json_encode([
-                    'status' => 'error',
-                    'message' => 'No changes were made to ticket or payment.',
-                    'details' => [
-                        'ticket_updated' => $result['ticket_updated'],
-                        'payment_updated' => $result['payment_updated']
-                    ]
-                ]);
-            }
-        } catch (Exception $e) {
-            http_response_code(500);
-            echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
-        }
+        $queryParams = getQueryParams(['ticket_id']);
+        updateTicketHandler($queryParams['ticket_id']);
         break;
-
     default:
         respond(405, 'Method Not Allowed');
 

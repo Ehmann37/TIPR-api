@@ -1,16 +1,19 @@
 <?php
 
 function buildWhereClause(array $filters, array &$params): string {
-  $clause = "";
-  foreach ($filters as $key => $value) {
-      if ($value !== null) {
-          $paramKey = ":$key";
-          $clause .= " AND $key = $paramKey";
+  $clauses = [];
+
+  foreach ($filters as $column => $value) {
+      if (!is_null($value)) {
+          $paramKey = str_replace(['.', '(', ')'], '_', $column);
+          $clauses[] = "$column = :$paramKey";
           $params[$paramKey] = $value;
       }
   }
-  return $clause;
+
+  return $clauses ? ' AND ' . implode(' AND ', $clauses) : '';
 }
+
 
 function updateRecord($table, $idField, $id, $data, $allowedFields) {
   global $pdo;
