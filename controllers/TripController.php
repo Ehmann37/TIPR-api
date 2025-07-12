@@ -11,7 +11,7 @@ function handleUpdateTripStatus() {
 
     $missing = validateFields($data, ['bus_id', 'status']);
     if (!empty($missing)) {
-        respond(400, 'Missing required fields: ' . implode(', ', $missing));
+        respond(200, 'Missing required fields: ' . implode(', ', $missing));
         return;
     }
 
@@ -19,12 +19,12 @@ function handleUpdateTripStatus() {
     $status = $data['status'];
 
     if (!checkBusExists($bus_id)) {
-        respond(404, 'Bus not found');
+        respond(200, 'Bus not found');
         return;
     }
 
     if (!in_array($status, ['active', 'complete'])) {
-        respond(400, 'Invalid status. Must be "active" or "complete".');
+        respond(200, 'Invalid status. Must be "active" or "complete".');
         return;
     }
 
@@ -32,22 +32,19 @@ function handleUpdateTripStatus() {
         if ($status === 'complete') {
             $updated = completeInstatnce($bus_id, $status);
             if (!$updated) {
-                respond(404, 'No active trip found for the bus');
+                respond(200, '00');
                 return;
             }
+            respond(200, '0');
         } elseif ($status === 'active') {
             if (checkBusifActive($bus_id)) {
-                respond(400, 'Bus is already active');
+                respond(200, '10');
                 return;
             }
             $updated = createInstance($bus_id, $status);
+            respond(200, '1');
         }
 
-        if ($updated) {
-            respond(200, 'Trip status updated successfully', ['status' => $status]);
-        } else {
-            respond(500, 'Failed to update trip status');
-        }
     } catch (Exception $e) {
         respond(500, $e->getMessage());
     }

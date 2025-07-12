@@ -17,7 +17,7 @@ function buildWhereClause(array $filters, array &$params): string {
 
 function updateRecord($table, $idField, $id, $data, $allowedFields) {
   global $pdo;
-
+  
   $fieldsToUpdate = [];
   $params = [":$idField" => $id];
 
@@ -27,12 +27,13 @@ function updateRecord($table, $idField, $id, $data, $allowedFields) {
           $params[":$field"] = $data[$field];
       }
   }
-
+  
   if (empty($fieldsToUpdate)) {
       return false;
   }
 
   $sql = "UPDATE $table SET " . implode(', ', $fieldsToUpdate) . " WHERE $idField = :$idField";
+
   $stmt = $pdo->prepare($sql);
   $stmt->execute($params);
 

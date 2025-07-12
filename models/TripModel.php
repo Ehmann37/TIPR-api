@@ -61,7 +61,6 @@ function createInstance($bus_id, $status) {
   return $stmt->rowCount() > 0;
 }
 
-
 function checkBusifActive($bus_id) {
   global $pdo;
 
@@ -71,13 +70,22 @@ function checkBusifActive($bus_id) {
   return $stmt->fetchColumn() !== false;
 }
 
-function incrementTotalPassengers($trip_id) {
+function incrementTotalPassengers($trip_id, $numPassengers) {
   global $pdo;
 
-  $sql = "UPDATE trip SET total_passenger = total_passenger + 1 WHERE trip_id = :trip_id";
+  $sql = "UPDATE trip SET total_passenger = total_passenger + $numPassengers WHERE trip_id = :trip_id";
   $stmt = $pdo->prepare($sql);
   $stmt->execute([':trip_id' => $trip_id]);
 
 }
 
+function incrementTotalRevenue($trip_id, $amount, $numPassengers) {
+  global $pdo;
+
+  $sql = "UPDATE trip SET total_revenue = total_revenue + :amount*:numPassengers WHERE trip_id = :trip_id";
+  $stmt = $pdo->prepare($sql);
+  $stmt->execute([':amount' => $amount, ':trip_id' => $trip_id, ':numPassengers' => $numPassengers]);
+
+  return $stmt->rowCount() > 0;
+}
 ?>

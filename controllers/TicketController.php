@@ -23,7 +23,7 @@ function handleGetTicket($queryParams) {
 
   if ($payment_id !== null) {
     if (!checkPaymentExists($payment_id)) {
-      respond(404, 'Ticket not found');
+      respond(200, 'Ticket not found');
       return;
     }
 
@@ -32,7 +32,7 @@ function handleGetTicket($queryParams) {
 
   } elseif ($ticket_id !== null) {
     if (!checkTicketExists($ticket_id)) {
-      respond(404, 'Ticket not found');
+      respond(200, 'Ticket not found');
       return;
     }
 
@@ -46,18 +46,18 @@ function handleGetTicket($queryParams) {
       }
 
       if (!checkBusExists($bus_id)) {
-        respond(404, 'Bus not found');
+        respond(200, 'Bus not found');
         return;
       }
 
       $trip_id = getActiveTrip($bus_id) ?? null;
       if ($trip_id === null) {
-        respond(404, 'No Active Trip Found for the Bus');
+        respond(200, 'No Active Trip Found for the Bus');
       } 
 
       $current_stop_id = findNearestStop($latitude, $longitude)['stop_id'] ?? null;
       if ($current_stop_id === null) {
-        respond(404, 'Location Provided has no nearby stop');
+        respond(200, 'Location Provided has no nearby stop');
       }
 
       $stops = getStopsByBusId($bus_id, $current_stop_id);
@@ -74,7 +74,7 @@ function handleGetTicket($queryParams) {
       }
 
       if (count($data) === 0) {
-        respond(404, 'No tickets found for the provided location');
+        respond(200, 'No tickets found for the provided location');
       } else {
         respond(200, 'Tickets fetched', $data);
       }
@@ -84,7 +84,7 @@ function handleGetTicket($queryParams) {
       $filters = buildFilters($queryParams, $allowed);
       $tickets = getTickets($filters);
       if (count($tickets) === 0) {
-        respond(404, 'No tickets found');
+        respond(200, 'No tickets found');
       } else {
         respond(200, 'Tickets fetched', $tickets);
       }
@@ -132,12 +132,14 @@ function handleCreateTicket() {
   }
 
   $insertedTickets = [];
+  $numPassengers = count($data['passengers']);
+
   foreach ($data['passengers'] as $passenger) {
     $ticket = array_merge($sharedTicketData, [
         'full_name' => $passenger['full_name'],
         'seat_number' => $passenger['seat_number'],
         'passenger_category' => $passenger['passenger_category'],
-        'passenger_status' => $passenger['passenger_status']
+        'passenger_status' => 'on_bus',
     ]);
 
     try {
@@ -149,43 +151,47 @@ function handleCreateTicket() {
     }
   }
 
+  echo json_encode($numPassengers);
+
+  incrementTotalPassengers($data['trip_id'], $numPassengers);
+
+  if ($paymentData['payment_status'] === "paid") {
+    incrementTotalRevenue($data['trip_id'], $paymentData['fare_amount'], $numPassengers);
+  }
+  
   respond(201, 'Tickets created successfully', [
     'payment_id' => $paymentData['payment_id'],
     'ticket_ids' => $insertedTickets
   ]);
 }
 
-
-
 function updateTicketHandler($ticket_id){
   if ($ticket_id === null) {
-    respond(400, 'Missing ticket ID');
+    respond(200, 'Missing ticket ID');
     return;
   }
 
   $data = sanitizeInput(getRequestBody());
 
-  $allowed = ['passenger_category', 'seat_number', 'payment_status'];
-  if (!validateAtLeastOneField($data, $allowed)) {
-    respond(400, 'No valid fields provided for update');
-    return;
+  $allowed = ['passenger_category', 'seat_number','payment_status'];
+    if (!validateAtLeastOneField($data, $allowed)) {
+      respond(200, 'No valid fields provided for update');
+      return;
   }
 
-  if (isset($data['payment_status'])) {
-    $payment = updatePayment($ticket_id, $data, $allowed);
-    if ($payment) {
-      respond (200, 'Payment updated successfully');
-    } else {
-      respond(404, 'Payment not found or no changes made');
-      return;
+  if ($data['payment_status'] !== null) {
+    $payment = updatePayment($ticket_id, ['payment_status' => $data['payment_status']], $allowed);
+    if (!$payment) {
+      respond(200, 'Payment_Status not changed');
+      exit;
     }
-  } else {
+  } 
+  unset($data['payment_status']);
+
+  if ($data['passenger_category'] != null || $data['seat_number'] != null) {
     $ticket = updateTicket($ticket_id, $data, $allowed);
-    if ($ticket) {
-      respond(200, 'Ticket updated successfully');
-    } else {
-      respond(404, 'Ticket not found or no changes made');
-      return;
-    }
+    
   }
+
+  respond (200, 'Ticket updated successfully');
 }

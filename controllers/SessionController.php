@@ -61,19 +61,35 @@ function handleTripPost() {
         }
 
         $tripDetails['current_stop'] = getStopById($tripDetails['stop_id'])['stop_name'] ?? null;
+        $tripDetails['current_stop_id'] = getStopById($tripDetails['stop_id'])['stop_id'] ?? null;
         $tripDetails['stops'] = getStopsByBusId($tripDetails['bus_id'], $tripDetails['stop_id']);
         unset($tripDetails['stop_id']);
 
-        $passenger = checkPayment($data['payment_id']);
+        $passenger = checkPaymentExists($data['payment_id']);
+
+        
+        $passengerState = getTicketByPaymentId($data['payment_id'])['payment']['payment_status'] ?? null;
+
         if (!$passenger) {
-            respond(404, 'Payment not found');
-            return;
+            $passengerDetails = ['state' => 'not_exist'];
+
+            respond(200, 'Trip and passenger data', [
+            'trip_details' => $tripDetails,
+            'passenger_details' => $passengerDetails
+            ]);
+        } else {
+            $passengerDetails = [
+                'state' => $passengerState,
+                'passengers' => getTicketByPaymentId($data['payment_id'])['tickets']
+            ];
+
+            respond(200, 'Trip and passenger data', [
+            'trip_details' => $tripDetails,
+            'passenger_details' => $passengerDetails
+            ]);
         }
 
-        respond(200, 'Trip and passenger data', [
-            'trip_details' => $tripDetails,
-            'passenger_details' => $passenger
-        ]);
+        
     } else {
         respond(400, 'Invalid request structure');
     }
