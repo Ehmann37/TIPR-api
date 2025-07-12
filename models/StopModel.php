@@ -1,20 +1,6 @@
 <?php
 require_once __DIR__ . '/../config/db.php';
 
-function getAllStops() {
-    global $pdo;
-    $stmt = $pdo->prepare("SELECT * FROM stop");
-    $stmt->execute();
-    return $stmt->fetchAll(PDO::FETCH_ASSOC);
-}
-
-function getStopById($id) {
-    global $pdo;
-    $stmt = $pdo->prepare("SELECT * FROM stop WHERE stop_id = ?");
-    $stmt->execute([$id]);
-    return $stmt->fetch(PDO::FETCH_ASSOC);
-}
-
 function getStopsByBusId($busId, $currentStopId) {
     global $pdo;
 
@@ -53,9 +39,7 @@ function getStopsByBusId($busId, $currentStopId) {
     return $stmtStops->fetchAll(PDO::FETCH_ASSOC);
 }
 
-
-function findNearestStop($lat, $lng, $radiusMeters = 1000000)
-{
+function findNearestStop($lat, $lng, $radiusMeters = 1000000){
     global $pdo;
 
     $sql = "
