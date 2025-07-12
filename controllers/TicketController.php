@@ -95,16 +95,67 @@ function handleGetTicket($queryParams) {
 function handleCreateTicket() {
   $data = sanitizeInput(getRequestBody());
 
-  $requiredFields = ['bus_id', 'origin_stop_id', 'destination_stop_id', 'full_name', 'seat_number', 'passenger_category', 'passenger_status', 'boarding_time', 'trip_id'];
-
+  $requiredFields = ['trip_id', 'origin_stop_id', 'destination_stop_id', 'bus_id', 'boarding_time', 'contact_info', 'passengers', 'payment'];
   $missing = validateFields($data, $requiredFields);
   if (!empty($missing)) {
     respond(400, 'Missing required fields: ' . implode(', ', $missing));
     return;
   }
 
+  $sharedTicketData = [
+    'trip_id' => $data['trip_id'],
+    'origin_stop_id' => $data['origin_stop_id'],
+    'destination_stop_id' => $data['destination_stop_id'],
+    'bus_id' => $data['bus_id'],
+    'boarding_time' => $data['boarding_time'],
+    'arrival_time' => $data['arrival_time'] ?? null,
+    'contact_info' => $data['contact_info'],
+    'payment_id' => $data['payment']['payment_id']
+  ];
 
+  $paymentFields = ['payment_id', 'payment_mode', 'payment_platform', 'fare_amount', 'payment_status'];
+  $paymentData = [];
+
+  foreach ($paymentFields as $field) {
+    $paymentData[$field] = $data['payment'][$field] ?? null;
+  }
+
+  try {
+    $paymentInserted = addPayment($paymentData);
+    if (!$paymentInserted) {
+        respond(500, 'Failed to create payment');
+        return;
+    }
+  } catch (Exception $e) {
+    respond(500, 'Payment insertion error: ' . $e->getMessage());
+    return;
+  }
+
+  $insertedTickets = [];
+  foreach ($data['passengers'] as $passenger) {
+    $ticket = array_merge($sharedTicketData, [
+        'full_name' => $passenger['full_name'],
+        'seat_number' => $passenger['seat_number'],
+        'passenger_category' => $passenger['passenger_category'],
+        'passenger_status' => $passenger['passenger_status']
+    ]);
+
+    try {
+        $ticketId = addTicket($ticket);
+        $insertedTickets[] = $ticketId;
+    } catch (Exception $e) {
+        respond(500, 'Ticket insertion error: ' . $e->getMessage());
+        return;
+    }
+  }
+
+  respond(201, 'Tickets created successfully', [
+    'payment_id' => $paymentData['payment_id'],
+    'ticket_ids' => $insertedTickets
+  ]);
 }
+
+
 
 function updateTicketHandler($ticket_id){
   if ($ticket_id === null) {

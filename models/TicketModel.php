@@ -102,30 +102,12 @@ function createTicketWithPayment($ticketData, $paymentData) {
     }
 }
 
-function addTicket($data) {
+require_once __DIR__ . '/../utils/DBUtils.php';
+
+function addTicket(array $data): int|false {
     global $pdo;
-    
-
-    $sql = "INSERT INTO ticket (bus_id, origin_stop_id, destination_stop_id, full_name, seat_number, passenger_category, boarding_time, arrival_time, passenger_status, contact_info, trip_id)
-            VALUES (:bus_id, :origin_stop_id, :destination_stop_id, :full_name, :seat_number, :passenger_category, :boarding_time, :arrival_time, :passenger_status, :contact_info, :trip_id)";
-
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute([
-        ':bus_id' => $data['bus_id'],
-        ':origin_stop_id' => $data['origin_stop_id'],
-        ':destination_stop_id' => $data['destination_stop_id'],
-        ':full_name' => $data['full_name'],
-        ':seat_number' => $data['seat_number'],
-        ':passenger_category' => $data['passenger_category'],
-        ':passenger_status' => $data['passenger_status'],
-        ':boarding_time' => $data['boarding_time'],
-        ':arrival_time' => isset($data['arrival_time']) ? $data['arrival_time'] : null,
-        ':contact_info' => isset($data['contact_info']) ? $data['contact_info'] : null,
-        ':trip_id' => $data['trip_id']
-    ]);
-
-
-    return $pdo->lastInsertId();
+    $success = insertRecord('ticket', $data);
+    return $success ? $pdo->lastInsertId() : false;
 }
 
 function updateTicket($id, $data, $allowedFields) {

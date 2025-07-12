@@ -55,3 +55,25 @@ function checkExists($table, $field, $value, $extraConditions = []): bool {
 
   return $stmt->fetchColumn() > 0;
 }
+
+
+function insertRecord(string $table, array $data): bool {
+  global $pdo;
+
+  if (empty($data)) return false;
+
+  $columns = array_keys($data);
+  $placeholders = array_map(fn($col) => ":$col", $columns);
+
+  $sql = "INSERT INTO $table (" . implode(', ', $columns) . ")
+          VALUES (" . implode(', ', $placeholders) . ")";
+
+  $stmt = $pdo->prepare($sql);
+
+  foreach ($data as $col => $value) {
+      $stmt->bindValue(":$col", $value ?? null);
+  }
+
+  return $stmt->execute();
+}
+
