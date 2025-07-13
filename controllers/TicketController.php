@@ -120,6 +120,16 @@ function handleCreateTicket() {
     $paymentData[$field] = $data['payment'][$field] ?? null;
   }
 
+  $seats = array_map(fn($p) => $p['seat_number'], $data['passengers']);
+  $conflictingSeats = checkSeatConflicts($seats, $data['trip_id']);
+
+  if (!empty($conflictingSeats)) {
+    respond(400, 'Occupied', [
+      'conflicting_seats' => $conflictingSeats
+    ]);
+    return;
+  }
+
   try {
     $paymentInserted = addPayment($paymentData);
     if (!$paymentInserted) {
@@ -151,7 +161,6 @@ function handleCreateTicket() {
     }
   }
 
-  echo json_encode($numPassengers);
 
   incrementTotalPassengers($data['trip_id'], $numPassengers);
 

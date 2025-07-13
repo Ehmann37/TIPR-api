@@ -129,10 +129,6 @@ function createTicketWithPayment($ticketData, $paymentData) {
 
 function addTicket(array $data): int|false {
     global $pdo;
-    if ($data['seat_number'] !== 'Aisle'){
-        checkSeatIfAvailable($data['seat_number']);
-    }
-
     $success = insertRecord('ticket', $data);
     return $success ? $pdo->lastInsertId() : false;
 }
@@ -145,17 +141,14 @@ function updateTicket($id, $data, $allowedFields) {
     return updateRecord('ticket', 'ticket_id', $id, $data, $allowedFields);
 }
 
-
-function checkSeatIfAvailable($seat_number){
+function checkSeatConflicts(array $seatNumbers, int $tripId): array {
     global $pdo;
 
-    $seatOccupiedsql = "SELECT COUNT(*) FROM ticket WHERE seat_number = :seat_number";
-    $stmt = $pdo->prepare($seatOccupiedsql);
-    $stmt->execute([':seat_number' => $seat_number]);
-    $seatOccupied = $stmt->fetchColumn();
+    $placeholders = implode(',', array_fill(0, count($seatNumbers), '?'));
+    $query = "SELECT seat_number FROM ticket WHERE trip_id = ? AND seat_number IN ($placeholders)";
 
-    if ($seatOccupied > 0) {
-        respond(200, "Occupied");
-        exit;
-    }
+    $stmt = $pdo->prepare($query);
+    $stmt->execute(array_merge([$tripId], $seatNumbers));
+
+    return $stmt->fetchAll(PDO::FETCH_COLUMN);
 }
