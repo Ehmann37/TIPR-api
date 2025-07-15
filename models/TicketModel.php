@@ -21,7 +21,8 @@ function getTickets($filters = []) {
         't.bus_id' => $filters['bus_id'] ?? null,
         't.passenger_status' => $filters['passenger_status'] ?? null,
         't.passenger_category' => $filters['passenger_category'] ?? null,
-        'p.payment_status' => $filters['payment_status'] ?? null
+        'p.payment_status' => $filters['payment_status'] ?? null,
+        't.trip_id' => $filter['trip_id'] ?? null
     ], $params);
 
     $sql = "SELECT t.*, b.bus_id, s_orig.stop_name AS origin_stop_name, s_dest.stop_name AS destination_stop_name

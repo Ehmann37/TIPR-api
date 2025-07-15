@@ -1,6 +1,8 @@
 <?php
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../utils/TimeUtils.php';
+require_once __DIR__ . '/../utils/TimeUtils.php';
+
 
 function getActiveTrip($bus_id) {
   global $pdo;
@@ -103,3 +105,16 @@ function incrementTotalRevenue($trip_id, $totalFare) {
   return $stmt->rowCount() > 0;
 }
 
+function checkTripExist($trip_id){
+  return checkExists('trip', 'trip_id', $trip_id);
+}
+
+function getTripDetails($trip_id){
+  global $pdo;
+
+  $sql = 'SELECT * FROM trip WHERE trip_id = :trip_id';
+  $stmt = $pdo->prepare($sql);
+  $stmt->execute([':trip_id' => $trip_id]);
+  return $stmt->fetch(PDO::FETCH_ASSOC);
+
+}

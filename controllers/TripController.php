@@ -1,10 +1,29 @@
 <?php
 require_once __DIR__ . '/../models/TripModel.php';
+require_once __DIR__ . '/../models/TicketModel.php';
 require_once __DIR__ . '/../models/BusModel.php';
 require_once __DIR__ . '/../utils/ValidationUtils.php'; 
 require_once __DIR__ . '/../utils/ResponseUtils.php';
 require_once __DIR__ . '/../utils/RequestUtils.php';
 
+
+function handleGetTripSummary($queryParams){
+    $trip_id = $queryParams['trip_id'] ?? null;
+
+    if ($trip_id !== null){
+        if (!checkTripExist($trip_id)){
+            respond('01', 'Trip not Found');
+        }
+    }
+
+    $tripDetails = getTripDetails($trip_id);
+    $tickets = getTickets([$trip_id]);
+
+    respond('1', 'Trip Summary Fetched', [
+        'trip_details' => $tripDetails,
+        'tickets' => $tickets
+    ]);
+}
 
 function handleUpdateTripStatus() {
     $data = sanitizeInput(getRequestBody());
