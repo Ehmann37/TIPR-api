@@ -2,7 +2,6 @@
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/PaymentModel.php';
 require_once __DIR__ . '/../utils/DBUtils.php';
-require_once __DIR__ . '/../utils/ResponseUtils.php';
 
 function getPaymentFromTicket($id) {
     global $pdo;

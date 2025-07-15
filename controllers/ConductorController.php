@@ -10,18 +10,18 @@ function handleGetConductor($queryParams) {
 
   if ($id !== null) {
     if (!checkConductorExists($id)) {
-        respond(404, 'Conductor not found');
+        respond('01', 'Conductor not found');
         return;
     }
     
     $conductor = getConductorById($id);
-    respond(200, 'Conductor fetched', $conductor);
+    respond('1', 'Conductor fetched', $conductor);
   } else {
     $allowed = [];
     $filters = buildFilters($queryParams, $allowed);
     
     $conductors = getConductors($filters);
-    respond(200, 'Conductors fetched', $conductors);
+    respond('1', 'Conductors fetched', $conductors);
     
   }
 }

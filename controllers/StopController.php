@@ -8,18 +8,18 @@ function handleGetStop($queryParams) {
 
   if ($id !== null) {
     if (!checkStopExists($id)) {
-      respond(404, 'Stop not found');
+      respond('01', 'Stop not found');
       return;
     }
 
     $stop = getStopById($id);
-    respond(200, 'Stop fetched successfully', $stop);
+    respond('1', 'Stop fetched successfully', $stop);
   } else {
     $stops = getAllStops();
     if (empty($stops)) {
-        respond(404, 'No stops found');
+        respond('01', 'No stops found');
         return;
     }
-    respond(200, 'Stops retrieved successfully', $stops);
+    respond('1', 'Stops retrieved successfully', $stops);
   }
 }

@@ -23,7 +23,8 @@ switch ($method) {
 
         $data = json_decode(file_get_contents("php://input"), true);
 
-    
+        
+
         if (isset($data['payment'])) {
             $ticketData = $data;
             $paymentData = $data['payment'];
@@ -73,5 +74,6 @@ switch ($method) {
         updateTicketHandler($queryParams['ticket_id']);
         break;
     default:
-        respond(405, 'Method Not Allowed');
+        respond('02', 'Method Not Allowed');
+
 }

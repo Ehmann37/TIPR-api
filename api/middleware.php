@@ -22,11 +22,7 @@ function checkAuthorization() {
     $token = isset($headers['Authorization']) ? str_replace('Bearer ', '', $headers['Authorization']) : null;
 
     if ($token !== API_TOKEN) {
-        http_response_code(401);
-        echo json_encode([
-            'status' => 'error',
-            'message' => 'Unauthorized access. Invalid token.'
-        ]);
+        respond('02', 'Unauthorized access. Invalid token.');
         exit;
     }
 }

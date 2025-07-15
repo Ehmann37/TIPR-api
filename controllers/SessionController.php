@@ -16,7 +16,7 @@ function handleTripPost() {
 
     if (isset($data['latitude'], $data['longitude'], $data['bus_id'])) {
         if (!is_numeric($data['bus_id']) || intval($data['bus_id']) != $data['bus_id']) {
-            respond(400, 'Invalid bus_id. It must be an integer.');
+            respond('01', 'Invalid bus_id. It must be an integer.');
             return;
         }
 
@@ -24,18 +24,18 @@ function handleTripPost() {
         $busId = intval($data['bus_id']);
 
         if (!checkBusExists($busId)) {
-            respond(404, 'Bus not found');
+            respond('01', 'Bus not found');
             return;
         }
 
         if (!$nearestStop) {
-            respond(404, 'No nearby stop found');
+            respond('01', 'No nearby stop found');
             return;
         }
 
         $tripId = getActiveTrip($busId);
         if (!$tripId) {
-            respond(400, 'No active trip for the bus');
+            respond('01', 'No active trip for the bus');
             return;
         }
 
@@ -48,7 +48,7 @@ function handleTripPost() {
 
         $token = encryptData(json_encode($payload), $KEY);
 
-        respond(200, 'Stop and trip data encrypted', [
+        respond('1', 'Stop and trip data encrypted', [
             'stop_name' => $nearestStop['stop_name'],
             'token' => $token,
             'trip_id' => $tripId
@@ -57,7 +57,7 @@ function handleTripPost() {
     } elseif (isset($data['id'], $data['payment_id'])) {
         $tripDetails = decryptData($data['id'], $KEY);
         if (!$tripDetails) {
-            respond(400, 'Invalid or expired token');
+            respond('01', 'Invalid or expired token');
             return;
         }
 
@@ -74,7 +74,7 @@ function handleTripPost() {
         if (!$passenger) {
             $passengerDetails = ['state' => 'not_exist'];
 
-            respond(200, 'Trip and passenger data', [
+            respond('1', 'Trip and passenger data', [
             'trip_details' => $tripDetails,
             'passenger_details' => $passengerDetails
             ]);
@@ -85,7 +85,7 @@ function handleTripPost() {
                 'passengers' => getTicketByPaymentId($data['payment_id'])['tickets']
             ];
 
-            respond(200, 'Trip and passenger data', [
+            respond('1', 'Trip and passenger data', [
             'trip_details' => $tripDetails,
             'passenger_details' => $passengerDetails
             ]);
@@ -93,7 +93,7 @@ function handleTripPost() {
 
         
     } else {
-        respond(400, 'Invalid request structure');
+        respond('01', 'Invalid request structure');
     }
 }
 

@@ -1,12 +1,16 @@
 <?php
 
 function respond($code, $message, $data = null){
-  http_response_code($code);
+  // "01" 
+  // "1"
+  // "02"
+  http_response_code((int)$code * 200);
   echo json_encode([
-      'status' => $code < 400 ? 'success' : 'error',
+      'status' => $code === '1' ? 'success' : 'error',
       'message' => $message,
       'data' => $data
   ]);
+  exit;
 }
 
 

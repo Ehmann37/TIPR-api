@@ -15,5 +15,5 @@ switch ($method) {
         handleGetConductor($queryParams);
         break;
     default:
-        respond(405, 'Method Not Allowed');
+        respond('02', 'Method Not Allowed');
 }

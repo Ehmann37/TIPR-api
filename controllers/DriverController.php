@@ -10,18 +10,18 @@ function handleGetDriver($queryParams) {
 
   if ($id !== null) {
     if (!checkDriverExists($id)) {
-        respond(404, 'Driver not found');
+        respond('01', 'Driver not found');
         return;
     }
     
     $driver = getDriverById($id);
-    respond(200, 'Driver fetched', $driver);
+    respond('1', 'Driver fetched', $driver);
   } else {
     $allowed = [];
     $filters = buildFilters($queryParams, $allowed);
     
     $drivers = getDrivers($filters);
-    respond(200, 'Driver fetched', $drivers);
+    respond('1', 'Driver fetched', $drivers);
     
   }
 }

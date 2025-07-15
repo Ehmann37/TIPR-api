@@ -24,41 +24,41 @@ function handleGetTicket($queryParams) {
 
   if ($payment_id !== null) {
     if (!checkPaymentExists($payment_id)) {
-      respond(200, 'Ticket not found');
+      respond('01', 'Ticket not found');
       return;
     }
 
     $ticket = getTicketByPaymentId($payment_id);
-    respond(200, 'Ticket fetched', $ticket);
+    respond('1', 'Ticket fetched', $ticket);
 
   } elseif ($ticket_id !== null) {
     if (!checkTicketExists($ticket_id)) {
-      respond(200, 'Ticket not found');
+      respond('01', 'Ticket not found');
       return;
     }
 
     $ticket = getTicketByTicketId($ticket_id);
-    respond(200, 'Ticket fetched', $ticket);
+    respond('1', 'Ticket fetched', $ticket);
 
   } else {
     if ($latitude !== null && $longitude !== null){
       if ($bus_id === null) {
-        respond(400, 'Bus ID is required when latitude and longitude are provided');
+        respond('01', 'Bus ID is required when latitude and longitude are provided');
       }
 
       if (!checkBusExists($bus_id)) {
-        respond(200, 'Bus not found');
+        respond('01', 'Bus not found');
         return;
       }
 
       $trip_id = getActiveTrip($bus_id) ?? null;
       if ($trip_id === null) {
-        respond(200, 'No Active Trip Found for the Bus');
+        respond('01', 'No Active Trip Found for the Bus');
       } 
 
       $current_stop_id = findNearestStop($latitude, $longitude)['stop_id'] ?? null;
       if ($current_stop_id === null) {
-        respond(200, 'Location Provided has no nearby stop');
+        respond('01', 'Location Provided has no nearby stop');
       }
 
       $stops = getStopsByBusId($bus_id, $current_stop_id);
@@ -75,9 +75,9 @@ function handleGetTicket($queryParams) {
       }
 
       if (count($data) === 0) {
-        respond(200, 'No tickets found for the provided location');
+        respond('01', 'No tickets found for the provided location');
       } else {
-        respond(200, 'Tickets fetched', $data);
+        respond('1', 'Tickets fetched', $data);
       }
 
     } else {
@@ -85,9 +85,9 @@ function handleGetTicket($queryParams) {
       $filters = buildFilters($queryParams, $allowed);
       $tickets = getTickets($filters);
       if (count($tickets) === 0) {
-        respond(200, 'No tickets found');
+        respond('01', 'No tickets found');
       } else {
-        respond(200, 'Tickets fetched', $tickets);
+        respond('1', 'Tickets fetched', $tickets);
       }
     }
   }
@@ -99,7 +99,7 @@ function handleCreateTicket() {
   $requiredFields = ['trip_id', 'origin_stop_id', 'destination_stop_id', 'bus_id', 'boarding_time', 'contact_info', 'passengers', 'payment'];
   $missing = validateFields($data, $requiredFields);
   if (!empty($missing)) {
-    respond(400, 'Missing required fields: ' . implode(', ', $missing));
+    respond('01', 'Missing required fields: ' . implode(', ', $missing));
     return;
   }
 
@@ -125,7 +125,7 @@ function handleCreateTicket() {
   $conflictingSeats = checkSeatConflicts($seats, $data['trip_id']);
 
   if (!empty($conflictingSeats)) {
-    respond(400, 'Occupied', [
+    respond('01', 'Occupied', [
       'conflicting_seats' => $conflictingSeats
     ]);
     return;
@@ -147,7 +147,7 @@ function handleCreateTicket() {
   try {
     $paymentInserted = addPayment($paymentData);
     if (!$paymentInserted) {
-        respond(500, 'Failed to create payment');
+        respond('01', 'Failed to create payment');
         return;
     }
   } catch (Exception $e) {
@@ -192,7 +192,7 @@ function handleCreateTicket() {
     incrementTotalRevenue($data['trip_id'], $totalFare);
   }
   
-  respond(201, 'Tickets created successfully', [
+  respond('1', 'Tickets created successfully', [
     'payment_id' => $paymentData['payment_id'],
     'ticket_ids' => $insertedTickets
   ]);
@@ -200,12 +200,12 @@ function handleCreateTicket() {
 
 function updateTicketHandler($ticket_id){
   if ($ticket_id === null) {
-    respond(200, 'Missing ticket ID');
+    respond('01', 'Missing ticket ID');
     return;
   }
 
   if (!checkTicketExists($ticket_id)) {
-    respond(200, 'Ticket not found');
+    respond('01', 'Ticket not found');
     return;
   }
 
@@ -217,14 +217,14 @@ function updateTicketHandler($ticket_id){
 
   $allowed = ['passenger_category', 'seat_number','payment_status'];
     if (!validateAtLeastOneField($data, $allowed)) {
-      respond(200, 'No valid fields provided for update');
+      respond('01', 'No valid fields provided for update');
       return;
   }
 
   if ($data['payment_status'] !== null) {
     $payment = updatePayment($ticket_id, ['payment_status' => $data['payment_status']], $allowed);
     if (!$payment) {
-      respond(200, 'Payment_Status not changed');
+      respond('01', 'Payment_Status not changed');
       exit;
     }
     incrementTotalRevenue($trip_id, $totalFare);
@@ -239,7 +239,7 @@ function updateTicketHandler($ticket_id){
 
       $conflictingSeats = checkSeatConflicts($seats, $trip_id);
       if (!empty($conflictingSeats)) {
-        respond(400, 'Occupied', [
+        respond('01', 'Occupied', [
           'conflicting_seats' => $conflictingSeats
         ]);
       }
@@ -248,5 +248,5 @@ function updateTicketHandler($ticket_id){
     
   }
 
-  respond (200, 'Ticket updated successfully');
+  respond ('1', 'Ticket updated successfully');
 }

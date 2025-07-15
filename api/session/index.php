@@ -12,8 +12,7 @@ switch ($method) {
         handleTripPost();
         break;
     default:
-        http_response_code(405);
-        header('Allow: POST');
-        echo json_encode(['status' => 'error', 'message' => 'Method Not Allowed']);
+        respond('02', 'Method Not Allowed');
+
 }
 exit;
