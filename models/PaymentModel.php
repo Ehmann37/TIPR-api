@@ -27,12 +27,22 @@ function checkPaymentExists($id) {
 function getPaymentByTicketId($ticket_id) {
     global $pdo;
 
-    $sql = "SELECT p.payment_id, p.amount, p.status, p.created_at, t.ticket_id
+    $sql = "SELECT * 
             FROM payment p
             JOIN ticket t ON p.payment_id = t.payment_id
             WHERE t.ticket_id = :ticket_id";
     $stmt = $pdo->prepare($sql);
     $stmt->execute([':ticket_id' => $ticket_id]);
 
-    return $stmt->fetch(PDO::FETCH_ASSOC);
+    return $stmt->fetchColumn();
+}
+
+function getFareAmountByPaymentId($payment_id) {
+    global $pdo;
+
+    $sql = "SELECT fare_amount FROM payment WHERE payment_id = :payment_id";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute([':payment_id' => $payment_id]);
+
+    return $stmt->fetchColumn();
 }

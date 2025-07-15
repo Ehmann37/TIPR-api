@@ -5,6 +5,7 @@ require_once __DIR__ . '/../models/PaymentModel.php';
 require_once __DIR__ . '/../models/TripModel.php';
 require_once __DIR__ . '/../models/BusModel.php';
 require_once __DIR__ . '/../models/StopModel.php';
+require_once __DIR__ . '/../models/LocationModel.php';
 require_once __DIR__ . '/../utils/RequestUtils.php';
 require_once __DIR__ . '/../utils/QueryUtils.php';
 require_once __DIR__ . '/../utils/ValidationUtils.php';
@@ -113,7 +114,7 @@ function handleCreateTicket() {
     'payment_id' => $data['payment']['payment_id']
   ];
 
-  $paymentFields = ['payment_id', 'payment_mode', 'payment_platform', 'fare_amount', 'payment_status'];
+  $paymentFields = ['payment_id', 'payment_mode', 'payment_platform', 'payment_status'];
   $paymentData = [];
 
   foreach ($paymentFields as $field) {
@@ -130,6 +131,19 @@ function handleCreateTicket() {
     return;
   }
 
+  $destinationCoordinates = getStopCoordinates($data['destination_stop_id']);
+  $originCoordinates = getStopCoordinates($data['origin_stop_id']);
+
+  $distance = findDistance(
+    $originCoordinates['latitude'],
+    $originCoordinates['longitude'],
+    $destinationCoordinates['latitude'],
+    $destinationCoordinates['longitude']
+  );
+
+  $baseFare = 40.0;
+  $fare_amount = $baseFare + ($distance - 4) * 20;
+
   try {
     $paymentInserted = addPayment($paymentData);
     if (!$paymentInserted) {
@@ -142,14 +156,23 @@ function handleCreateTicket() {
   }
 
   $insertedTickets = [];
-  $numPassengers = count($data['passengers']);
 
   foreach ($data['passengers'] as $passenger) {
+    $discountedCategory = ['senior', 'student', 'pwd'];
+    if (in_array($passenger['passenger_category'], $discountedCategory)) {
+        $baseFare = $fare_amount * 0.5; // 50% discount for senior, student, and pwd
+    } else {
+        $baseFare = $fare_amount; // No discount for other categories
+    }
+
+    $discount = (in_array($passenger['passenger_category'], $discountedCategory)) ? 0.2 : 0.0;
+    
     $ticket = array_merge($sharedTicketData, [
         'full_name' => $passenger['full_name'],
         'seat_number' => $passenger['seat_number'],
         'passenger_category' => $passenger['passenger_category'],
         'passenger_status' => 'on_bus',
+        'fare_amount' => $fare_amount * (1 - $discount) 
     ]);
 
     try {
@@ -161,11 +184,12 @@ function handleCreateTicket() {
     }
   }
 
-
+  $numPassengers = count($data['passengers']);
   incrementTotalPassengers($data['trip_id'], $numPassengers);
+  $totalFare = getTotalFareByPaymentId($paymentData['payment_id']);
 
   if ($paymentData['payment_status'] === "paid") {
-    incrementTotalRevenue($data['trip_id'], $paymentData['fare_amount'], $numPassengers);
+    incrementTotalRevenue($data['trip_id'], $totalFare);
   }
   
   respond(201, 'Tickets created successfully', [
@@ -179,6 +203,15 @@ function updateTicketHandler($ticket_id){
     respond(200, 'Missing ticket ID');
     return;
   }
+
+  if (!checkTicketExists($ticket_id)) {
+    respond(200, 'Ticket not found');
+    return;
+  }
+
+  $trip_id = getTripIdByTicketId($ticket_id);
+  $payment_id = getTicketByTicketId($ticket_id)['payment_id'];
+  $totalFare = getTotalFareByPaymentId($payment_id);
 
   $data = sanitizeInput(getRequestBody());
 
@@ -194,10 +227,23 @@ function updateTicketHandler($ticket_id){
       respond(200, 'Payment_Status not changed');
       exit;
     }
+    incrementTotalRevenue($trip_id, $totalFare);
+
   } 
   unset($data['payment_status']);
 
   if ($data['passenger_category'] != null || $data['seat_number'] != null) {
+    if ($data['seat_number'] !== null && $data['seat_number'] !== 'Aisle') {
+      $seats = (array) $data['seat_number'];
+
+
+      $conflictingSeats = checkSeatConflicts($seats, $trip_id);
+      if (!empty($conflictingSeats)) {
+        respond(400, 'Occupied', [
+          'conflicting_seats' => $conflictingSeats
+        ]);
+      }
+    }
     $ticket = updateTicket($ticket_id, $data, $allowed);
     
   }

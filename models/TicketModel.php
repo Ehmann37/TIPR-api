@@ -80,7 +80,19 @@ function getTicketByTicketId($ticket_id) {
     
     $stmt = $pdo->prepare($sql);
     $stmt->execute([':ticket_id' => $ticket_id]);
-    return $stmt->fetch(PDO::FETCH_ASSOC);
+    $ticket = $stmt->fetch(PDO::FETCH_ASSOC);
+    return $ticket ?: null;
+}
+
+function getTotalFareByPaymentId($payment_id) {
+    global $pdo;
+
+    $sql = "SELECT SUM(fare_amount) as total_fare
+            FROM ticket 
+            WHERE payment_id = :payment_id";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute([':payment_id' => $payment_id]);
+    return $stmt->fetchColumn();
 }
 
 function checkTicketExists($id) {
@@ -100,6 +112,16 @@ function getTicketsByLocation($stop_id, $trip_id){
     ]);
 
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+function getTotalPassengersByPaymentId($payment_id) {
+    global $pdo;
+
+    $sql = "SELECT COUNT(*) as total_passengers FROM ticket WHERE payment_id = :payment_id";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute([':payment_id' => $payment_id]);
+    
+    return $stmt->fetchColumn();
 }
 
 function createTicketWithPayment($ticketData, $paymentData) {
@@ -134,10 +156,6 @@ function addTicket(array $data): int|false {
 }
 
 function updateTicket($id, $data, $allowedFields) {
-    if ($data['seat_number'] !==null && $data['seat_number'] !== 'Aisle') {
-        checkSeatIfAvailable($data['seat_number']);
-    }
-
     return updateRecord('ticket', 'ticket_id', $id, $data, $allowedFields);
 }
 

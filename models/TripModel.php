@@ -17,6 +17,17 @@ function getActiveTrip($bus_id) {
   }
 }
 
+function getTripIdByTicketId($ticket_id) {
+  global $pdo;
+
+  $sql = "SELECT t.trip_id FROM trip t
+          JOIN ticket ti ON t.trip_id = ti.trip_id
+          WHERE ti.ticket_id = :ticket_id";
+  $stmt = $pdo->prepare($sql);
+  $stmt->execute([':ticket_id' => $ticket_id]);
+  return $stmt->fetchColumn();
+}
+
 function completeInstatnce($bus_id, $status) {
   global $pdo;
 
@@ -79,13 +90,16 @@ function incrementTotalPassengers($trip_id, $numPassengers) {
 
 }
 
-function incrementTotalRevenue($trip_id, $amount, $numPassengers) {
+function incrementTotalRevenue($trip_id, $totalFare) {
   global $pdo;
 
-  $sql = "UPDATE trip SET total_revenue = total_revenue + :amount*:numPassengers WHERE trip_id = :trip_id";
+  $sql = "UPDATE trip SET total_revenue = total_revenue + :total_fare WHERE trip_id = :trip_id";
   $stmt = $pdo->prepare($sql);
-  $stmt->execute([':amount' => $amount, ':trip_id' => $trip_id, ':numPassengers' => $numPassengers]);
+  $stmt->execute([
+      ':total_fare' => $totalFare,
+      ':trip_id' => $trip_id
+  ]);
 
   return $stmt->rowCount() > 0;
 }
-?>
+
