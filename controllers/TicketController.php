@@ -75,7 +75,7 @@ function handleGetTicket($queryParams) {
       }
 
       if (count($data) === 0) {
-        respond('01', 'No tickets found for the provided location');
+        respond('1', 'No tickets found for the provided location');
       } else {
         respond('1', 'Tickets fetched', $data);
       }
@@ -85,7 +85,7 @@ function handleGetTicket($queryParams) {
       $filters = buildFilters($queryParams, $allowed);
       $tickets = getTickets($filters);
       if (count($tickets) === 0) {
-        respond('01', 'No tickets found');
+        respond('1', 'No tickets found');
       } else {
         respond('1', 'Tickets fetched', $tickets);
       }

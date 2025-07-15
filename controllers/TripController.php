@@ -5,6 +5,7 @@ require_once __DIR__ . '/../models/BusModel.php';
 require_once __DIR__ . '/../utils/ValidationUtils.php'; 
 require_once __DIR__ . '/../utils/ResponseUtils.php';
 require_once __DIR__ . '/../utils/RequestUtils.php';
+require_once __DIR__ . '/../utils/QueryUtils.php';
 
 
 function handleGetTripSummary($queryParams){
@@ -17,7 +18,11 @@ function handleGetTripSummary($queryParams){
     }
 
     $tripDetails = getTripDetails($trip_id);
-    $tickets = getTickets([$trip_id]);
+
+    $filters = buildFilters($queryParams, ['trip_id']);
+
+    
+    $tickets = getTickets($filters);
 
     respond('1', 'Trip Summary Fetched', [
         'trip_details' => $tripDetails,

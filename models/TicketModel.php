@@ -22,7 +22,7 @@ function getTickets($filters = []) {
         't.passenger_status' => $filters['passenger_status'] ?? null,
         't.passenger_category' => $filters['passenger_category'] ?? null,
         'p.payment_status' => $filters['payment_status'] ?? null,
-        't.trip_id' => $filter['trip_id'] ?? null
+        't.trip_id' => $filters['trip_id'] ?? null
     ], $params);
 
     $sql = "SELECT t.*, b.bus_id, s_orig.stop_name AS origin_stop_name, s_dest.stop_name AS destination_stop_name
@@ -44,8 +44,24 @@ function getTickets($filters = []) {
     $result = [];
     foreach ($tickets as $ticket) {
         $payment = getPaymentFromTicket($ticket['payment_id']);
+
+        if (isset($filters['trip_id'])) {
+            foreach ($payment as $key => $value) {
+                $ticket[$key] = $value;
+                
+            }
+            
+            $included = ['ticket_id', 'passenger_category', 'fare_amount', 'payment_mode', 'payment_platform'];
+            foreach ($ticket as $k => $v) {
+                if (!in_array($k, $included)) {
+                    unset($ticket[$k]);
+                }
+            }
+            
+        } else {
+            $ticket['payment'] = $payment ?: null;
+        }
         
-        $ticket['payment'] = $payment ?: null;
         $result[] = $ticket;
     }
     
@@ -123,6 +139,7 @@ function getTotalPassengersByPaymentId($payment_id) {
     
     return $stmt->fetchColumn();
 }
+
 
 function createTicketWithPayment($ticketData, $paymentData) {
     global $pdo;
