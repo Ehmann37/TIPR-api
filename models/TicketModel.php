@@ -111,6 +111,16 @@ function getTotalFareByPaymentId($payment_id) {
     return $stmt->fetchColumn();
 }
 
+function getFareByTicketId($ticket_id){
+    global $pdo;
+
+    $sql = "SELECT fare_amount FROM ticket WHERE ticket_id = :ticket_id";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute([':ticket_id' => $ticket_id]);
+    return $stmt->fetchColumn();
+
+}
+
 function checkTicketExists($id) {
     return checkExists('ticket', 'ticket_id', $id);
 }

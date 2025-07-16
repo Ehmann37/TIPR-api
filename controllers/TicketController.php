@@ -61,17 +61,26 @@ function handleGetTicket($queryParams) {
         respond('01', 'Location Provided has no nearby stop');
       }
 
-      $stops = getStopsByBusId($bus_id, $current_stop_id);
+      $stops = [];
+      $stops[] = [
+        'stop_name' => getStopById($current_stop_id)['stop_name'], 
+        'stop_id' => getStopById($current_stop_id)['stop_id']
+      ];
+      
+      $stops = array_merge($stops, getStopsByBusId($bus_id, $current_stop_id));
 
-      $data = [];
+      $data = [
+        'current_stop' => findNearestStop($latitude, $longitude)['stop_name']
+      ];
       foreach ($stops as $stop){
         $tickets = getTicketsByLocation($stop['stop_id'], $trip_id);
 
-        $data[] = [
+        $data['tickets_per_stop'][] = [
             'destination' => $stop['stop_name'],
             'ticket_count' => count($tickets),
             'tickets' => $tickets
         ];
+        
       }
 
       if (count($data) === 0) {
@@ -122,6 +131,8 @@ function handleCreateTicket() {
   }
 
   $seats = array_map(fn($p) => $p['seat_number'], $data['passengers']);
+  
+  $seats = array_filter($seats, fn($seat) => $seat !== 'Aisle' && $seat !== null);
   $conflictingSeats = checkSeatConflicts($seats, $data['trip_id']);
 
   if (!empty($conflictingSeats)) {
@@ -142,7 +153,7 @@ function handleCreateTicket() {
   );
 
   $baseFare = 40.0;
-  $fare_amount = $baseFare + ($distance - 4) * 20;
+  $fare_amount = $baseFare + ($distance - 4) * 5;
 
   try {
     $paymentInserted = addPayment($paymentData);
@@ -159,14 +170,8 @@ function handleCreateTicket() {
 
   foreach ($data['passengers'] as $passenger) {
     $discountedCategory = ['senior', 'student', 'pwd'];
-    if (in_array($passenger['passenger_category'], $discountedCategory)) {
-        $baseFare = $fare_amount * 0.5; // 50% discount for senior, student, and pwd
-    } else {
-        $baseFare = $fare_amount; // No discount for other categories
-    }
 
     $discount = (in_array($passenger['passenger_category'], $discountedCategory)) ? 0.2 : 0.0;
-    
     $ticket = array_merge($sharedTicketData, [
         'full_name' => $passenger['full_name'],
         'seat_number' => $passenger['seat_number'],
@@ -199,6 +204,11 @@ function handleCreateTicket() {
 }
 
 function updateTicketHandler($ticket_id){
+  $ticket_info = [
+    'fare_amount' => getTicketByTicketId($ticket_id)['fare_amount'], 
+    'passenger_category' => getTicketByTicketId($ticket_id)['passenger_category']
+    ];
+
   if ($ticket_id === null) {
     respond('01', 'Missing ticket ID');
     return;
@@ -215,10 +225,11 @@ function updateTicketHandler($ticket_id){
 
   $data = sanitizeInput(getRequestBody());
 
-  $allowed = ['passenger_category', 'seat_number','payment_status'];
-    if (!validateAtLeastOneField($data, $allowed)) {
-      respond('01', 'No valid fields provided for update');
-      return;
+  $allowed = ['passenger_category', 'seat_number','payment_status', 'fare_amount'];
+  
+  if (!validateAtLeastOneField($data, $allowed)) {
+    respond('01', 'No valid fields provided for update');
+    return;
   }
 
   if ($data['payment_status'] !== null) {
@@ -233,9 +244,9 @@ function updateTicketHandler($ticket_id){
   unset($data['payment_status']);
 
   if ($data['passenger_category'] != null || $data['seat_number'] != null) {
+
     if ($data['seat_number'] !== null && $data['seat_number'] !== 'Aisle') {
       $seats = (array) $data['seat_number'];
-
 
       $conflictingSeats = checkSeatConflicts($seats, $trip_id);
       if (!empty($conflictingSeats)) {
@@ -244,6 +255,18 @@ function updateTicketHandler($ticket_id){
         ]);
       }
     }
+
+    if ($data['passenger_category'] !== null) {
+      $state_1 = ['regular'];
+      $state_2 = ['senior', 'student', 'pwd'];
+      if (in_array($data['passenger_category'], $state_1) && in_array($ticket_info['passenger_category'], $state_2)) {
+        $data['fare_amount'] = $ticket_info['fare_amount'] * 1.25;
+      } elseif (in_array($data['passenger_category'], $state_2) && in_array($ticket_info['passenger_category'], $state_1)) {
+        $data['fare_amount'] = $ticket_info['fare_amount'] * 0.8;
+      } else {
+        $data['fare_amount'] = $ticket_info['fare_amount'];
+      }
+    }                                                                             
     $ticket = updateTicket($ticket_id, $data, $allowed);
     
   }
