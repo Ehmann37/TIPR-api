@@ -55,7 +55,7 @@ function handleUpdateTripStatus() {
     try {
         if ($status === 'complete') {
             if (checkPassengerLeftBus(getActiveTrip($bus_id))) {
-                respond('01', 'Cannot complete trip. Passengers still on bus.');
+                respond('01', '11');
                 return;
             }
             $updated = completeInstatnce($bus_id, $status);
