@@ -61,6 +61,11 @@ function handleTripPost() {
             return;
         }
 
+        if ($tripDetails['trip_id'] !== getActiveTrip($tripDetails['bus_id'])) {
+            respond('01', 'Trip not active or does not match the bus');
+            return;
+        }
+
         $tripDetails['current_stop'] = getStopById($tripDetails['stop_id'])['stop_name'] ?? null;
         $tripDetails['current_stop_id'] = getStopById($tripDetails['stop_id'])['stop_id'] ?? null;
         $tripDetails['stops'] = getStopsByBusId($tripDetails['bus_id'], $tripDetails['stop_id']);

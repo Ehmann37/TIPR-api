@@ -90,9 +90,17 @@ function handleGetTicket($queryParams) {
       }
 
     } else {
-      $allowed = ['bus_id', 'passenger_status', 'payment_status', 'passenger_category'];
+      $allowed = ['bus_id', 'passenger_status', 'payment_status', 'passenger_category', 'trip_id'];
       $filters = buildFilters($queryParams, $allowed);
       $tickets = getTickets($filters);
+
+      foreach ($tickets as &$ticket) {
+        $ticket['associate_ticket'] = [
+          'seat_number' => getAssociateSeatByPaymentId($ticket['payment_id'], $ticket['ticket_id']),
+          'total_fare_amount' => getTotalFareByPaymentId($ticket['payment_id']),
+        ];
+      }
+
       if (count($tickets) === 0) {
         respond('1', 'No tickets found');
       } else {
