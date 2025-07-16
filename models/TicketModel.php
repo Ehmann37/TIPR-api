@@ -41,11 +41,12 @@ function getTickets($filters = []) {
         return [];
     }
 
+
     $result = [];
     foreach ($tickets as $ticket) {
         $payment = getPaymentFromTicket($ticket['payment_id']);
 
-        if (isset($filters['trip_id'])) {
+        if (isset($filters['trip_id']) && !isset($filters['bus_id'])) {
             foreach ($payment as $key => $value) {
                 $ticket[$key] = $value;
                 
@@ -188,8 +189,12 @@ function updateTicket($id, $data, $allowedFields) {
 function checkSeatConflicts(array $seatNumbers, int $tripId): array {
     global $pdo;
 
+    if (empty($seatNumbers)) {
+        return []; // No seat numbers to check, return an empty array
+    }
+
     $placeholders = implode(',', array_fill(0, count($seatNumbers), '?'));
-    $query = "SELECT seat_number FROM ticket WHERE trip_id = ? AND seat_number IN ($placeholders)";
+    $query = "SELECT seat_number FROM ticket WHERE trip_id = ? AND seat_number IS NOT NULL AND seat_number IN ($placeholders)";
 
     $stmt = $pdo->prepare($query);
     $stmt->execute(array_merge([$tripId], $seatNumbers));

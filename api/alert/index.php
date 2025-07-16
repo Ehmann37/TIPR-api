@@ -1,6 +1,6 @@
 <?php
 require_once __DIR__ . '/../middleware.php';
-require_once __DIR__ . '/../../controllers/AlertControl.php';
+require_once __DIR__ . '/../../controllers/AlertController.php';
 require_once __DIR__ . '/../../utils/RequestUtils.php';
 require_once __DIR__ . '/../../utils/ResponseUtils.php';
 

@@ -22,7 +22,7 @@ function handleGetAlert($queryParams) {
     return;
   }
 
-  if (!checkTripExists($trip_id)) {
+  if (!checkTripExist($trip_id)) {
     respond('01', 'Trip not found');
     return;
   }
@@ -39,20 +39,31 @@ function handleGetAlert($queryParams) {
 function handleCreateAlert($queryParams) {
   $data = sanitizeInput(getRequestBody());
   
-  if (!isset($data['bus_id']) || !isset($data['trip_id']) || !isset($data['message'])) {
-    respond('01', 'Missing required fields: bus_id, trip_id, message');
+  $bus_id = $queryParams['bus_id'];
+  $trip_id = $queryParams['trip_id'];
+
+  if ($bus_id == null &&  $trip_id == null) {
+    respond('01', 'Missing bus_id or trip_id');
     return;
   }
 
-  if (!checkBusExists($data['bus_id'])) {
+  if (!checkBusExists($bus_id)) {
     respond('01', 'Bus not found');
     return;
   }
 
-  if (!checkTripExists($data['trip_id'])) {
+  if (!checkTripExist($trip_id)) {
     respond('01', 'Trip not found');
     return;
   }
+
+  if (!isset($data['message'])) {
+    respond('01', 'Missing required fields: bus_id, trip_id, message');
+    return;
+  }
+
+  $data['bus_id'] = $bus_id;
+  $data['trip_id'] = $trip_id;
 
   try {
     $alert = createAlert($data);
@@ -60,6 +71,7 @@ function handleCreateAlert($queryParams) {
       respond('01', 'Failed to create alert');
       return;
     }
+    respond('1', 'Alert created successfully', $alert);
   } catch (Exception $e) {
     respond(500, $e->getMessage());
   }

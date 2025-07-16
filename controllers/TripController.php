@@ -69,8 +69,10 @@ function handleUpdateTripStatus() {
                 respond('01', '10');
                 return;
             }
-            $updated = createInstance($bus_id, $status);
-            respond('1', '1');
+            $id = createInstance($bus_id, $status);
+            respond('1', '1', [
+                'trip_id' => $id
+            ]);
         }
 
     } catch (Exception $e) {

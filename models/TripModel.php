@@ -68,10 +68,14 @@ function createInstance($bus_id, $status) {
       ':driver_id' => $busInfo['driver_id'],
       ':conductor_id' => $busInfo['conductor_id'],
       ':boarding_time' => getCurrentTime(),
-      ':status' => 'active'
+      ':status' => $status
   ]);
 
-  return $stmt->rowCount() > 0;
+  if ($stmt->rowCount() > 0) {
+    return $pdo->lastInsertId();
+  }
+
+  return false;
 }
 
 function checkBusifActive($bus_id) {

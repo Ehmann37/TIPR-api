@@ -13,7 +13,7 @@ $method = $_SERVER['REQUEST_METHOD'];
 
 switch ($method) {
     case 'GET':
-        $queryParams = getQueryParams(['ticket_id', 'payment_id', 'bus_id', 'passenger_status', 'payment_status', 'passenger_category', 'latitude', 'longitude']);
+        $queryParams = getQueryParams(['ticket_id', 'payment_id', 'bus_id', 'passenger_status', 'payment_status', 'passenger_category', 'latitude', 'longitude', 'trip_id']);
         handleGetTicket($queryParams);
         break;
 

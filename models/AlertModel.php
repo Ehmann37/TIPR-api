@@ -8,7 +8,7 @@ function getAlerts($filters = []) {
     $params = [];
     $where = buildWhereClause([
         'bus_id' => $filters['bus_id'] ?? null,
-        'status' => $filters['status'] ?? null
+        'trip_id' => $filters['trip_id'] ?? null
     ], $params);
 
     $sql = "SELECT * FROM alert WHERE 1=1 $where ORDER BY created_at DESC";
@@ -28,4 +28,8 @@ function updateAlert($id) {
     $stmt = $pdo->prepare($sql);
     $stmt->execute([':id' => $id]);
     return $stmt->rowCount() > 0;
+}
+
+function checkAlertExists($id) {
+    return checkExists('alert', 'id', $id);
 }

@@ -131,7 +131,7 @@ function handleCreateTicket() {
     'payment_id' => $data['payment']['payment_id']
   ];
 
-  $paymentFields = ['payment_id', 'payment_mode', 'payment_platform', 'payment_status'];
+  $paymentFields = ['payment_id', 'payment_mode', 'payment_status'];
   $paymentData = [];
 
   foreach ($paymentFields as $field) {
