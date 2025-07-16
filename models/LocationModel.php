@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . '/../config/db.php';
+
 function findDistance($lat1, $lon1, $lat2, $lon2) {
     $earthRadius = 6371; // Earth radius in meters
   
@@ -14,7 +16,7 @@ function findDistance($lat1, $lon1, $lat2, $lon2) {
     return $earthRadius * $c; 
   }
 
-  function getStopCoordinates($stop_id) {
+  function getStopCoordinates(int $stop_id) {
     global $pdo;
 
     $sql = "SELECT latitude, longitude FROM stop WHERE stop_id = :stop_id";
