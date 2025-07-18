@@ -55,22 +55,22 @@ function handleUpdateTripStatus() {
     try {
         if ($status === 'complete') {
             if (checkPassengerLeftBus(getActiveTrip($bus_id))) {
-                respond('01', '11');
+                respond('01', 'Cannot complete trip, passengers still on bus');
                 return;
             }
             $updated = completeInstatnce($bus_id, $status);
             if (!$updated) {
-                respond('01', '00');
+                respond('01', 'Trip not found or already completed');
                 return;
             }
-            respond('1', '0');
+            respond('1', 'Trip completed successfully');
         } elseif ($status === 'active') {
             if (checkBusifActive($bus_id)) {
-                respond('01', '10');
+                respond('01', 'Bus already has an active trip');
                 return;
             }
             $id = createInstance($bus_id, $status);
-            respond('1', '1', [
+            respond('1', 'Trip started sucessfully', [
                 'trip_id' => $id
             ]);
         }

@@ -144,9 +144,7 @@ function handleCreateTicket() {
   $conflictingSeats = checkSeatConflicts($seats, $data['trip_id']);
 
   if (!empty($conflictingSeats)) {
-    respond('01', 'Occupied', [
-      'conflicting_seats' => $conflictingSeats
-    ]);
+    respond('01', 'Occupied Seats: ' . implode(', ', $conflictingSeats));
     return;
   }
 
@@ -258,9 +256,7 @@ function updateTicketHandler($ticket_id){
 
       $conflictingSeats = checkSeatConflicts($seats, $trip_id);
       if (!empty($conflictingSeats)) {
-        respond('01', 'Occupied', [
-          'conflicting_seats' => $conflictingSeats
-        ]);
+        respond('01', 'Occupied Seats: ' . implode(', ', $conflictingSeats));
       }
     }
 
