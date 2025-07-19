@@ -7,7 +7,6 @@ function getAlerts($filters = []) {
 
     $params = [];
     $where = buildWhereClause([
-        'bus_id' => $filters['bus_id'] ?? null,
         'trip_id' => $filters['trip_id'] ?? null
     ], $params);
 

@@ -9,16 +9,10 @@ require_once __DIR__ . '/../utils/ValidationUtils.php';
 require_once __DIR__ . '/../utils/ResponseUtils.php';
 
 function handleGetAlert($queryParams) {
-  $bus_id = $queryParams['bus_id'];
-  $trip_id = $queryParams['trip_id'];
+  $trip_id = (int)$queryParams['trip_id'];
 
-  if ($bus_id == null &&  $trip_id == null) {
-    respond('01', 'Missing bus_id or trip_id');
-    return;
-  }
-
-  if (!checkBusExists($bus_id)) {
-    respond('01', 'Bus not found');
+  if ($trip_id == null) {
+    respond('01', 'Missing trip_id');
     return;
   }
 
@@ -27,10 +21,15 @@ function handleGetAlert($queryParams) {
     return;
   }
 
-  $filters = buildFilters($queryParams, ['bus_id', 'trip_id']);
+  if ($trip_id !== getActiveTrip()) {
+    respond('01', 'Trip is not active');
+    return;
+  }
+
+  $filters = buildFilters($queryParams, ['trip_id']);
   $alerts = getAlerts($filters);
   if (empty($alerts)) {
-    respond('01', 'No alerts found for the given bus or trip');
+    respond('01', 'No alerts found for the given trip');
     return;
   }
   respond('1', 'Alerts fetched successfully', $alerts);
@@ -39,16 +38,10 @@ function handleGetAlert($queryParams) {
 function handleCreateAlert($queryParams) {
   $data = sanitizeInput(getRequestBody());
   
-  $bus_id = $queryParams['bus_id'];
   $trip_id = $queryParams['trip_id'];
 
-  if ($bus_id == null &&  $trip_id == null) {
-    respond('01', 'Missing bus_id or trip_id');
-    return;
-  }
-
-  if (!checkBusExists($bus_id)) {
-    respond('01', 'Bus not found');
+  if ($trip_id == null) {
+    respond('01', 'Missing trip_id');
     return;
   }
 
@@ -57,14 +50,16 @@ function handleCreateAlert($queryParams) {
     return;
   }
 
-  if (!isset($data['message'])) {
-    respond('01', 'Missing required fields: bus_id, trip_id, message');
+  if ((int)$trip_id !== getActiveTrip()) {
+    respond('01', 'Trip is not active');
     return;
   }
 
-  $data['bus_id'] = $bus_id;
+  if (!isset($data['message'])) {
+    respond('01', 'Missing message');
+    return;
+  }
   $data['trip_id'] = $trip_id;
-
   try {
     $alert = createAlert($data);
     if (!$alert) {

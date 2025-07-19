@@ -11,11 +11,11 @@ $method = $_SERVER['REQUEST_METHOD'];
 
 switch ($method) {
     case 'GET':
-        $queryParams = getQueryParams(['bus_id',  'trip_id']);
+        $queryParams = getQueryParams(['trip_id']);
         handleGetAlert($queryParams);
         break;
     case 'POST':
-        $queryParams = getQueryParams(['bus_id', 'trip_id']);
+        $queryParams = getQueryParams(['trip_id']);
         handleCreateAlert($queryParams);
         break;
     case 'PUT':
