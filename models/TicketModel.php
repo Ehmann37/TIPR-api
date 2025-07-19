@@ -2,6 +2,17 @@
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../utils/DBUtils.php';
 
+
+function getPaymentFromTicket($id) {
+    global $pdo;
+    
+    $sql = "SELECT * FROM payment WHERE payment_id = :id";
+    
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute([':id' => $id]);
+    return $stmt->fetch(PDO::FETCH_ASSOC);
+}
+
 function getTickets($filters = [], $trip_summary = 0) {
     global $pdo;
 
@@ -97,11 +108,12 @@ function getTicketsByLocation($stop_id, $trip_id){
 
     $sql = "SELECT t.*, p.* FROM ticket t 
         JOIN payment p ON t.payment_id = p.payment_id
-        WHERE destination_stop_id = :stop_id AND trip_id = :trip_id";
+        WHERE destination_stop_id = :stop_id AND trip_id = :trip_id AND passenger_status = :passenger_status";
     $stmt = $pdo->prepare($sql);
     $stmt->execute([
         ':stop_id' => $stop_id,
-        ':trip_id' => $trip_id
+        ':trip_id' => $trip_id,
+        ':passenger_status' => 'on_bus'
     ]);
 
     return $stmt->fetchAll(PDO::FETCH_ASSOC);

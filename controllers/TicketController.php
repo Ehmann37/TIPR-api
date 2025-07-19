@@ -63,6 +63,8 @@ function handleGetTicket($queryParams) {
       $data = [
         'current_stop' => findNearestStop($latitude, $longitude)['stop_name']
       ];
+
+      $count = 0;
       foreach ($stops as $stop){
         $tickets = getTicketsByLocation($stop['stop_id'], $trip_id);
 
@@ -71,7 +73,11 @@ function handleGetTicket($queryParams) {
             'ticket_count' => count($tickets),
             'tickets' => $tickets
         ];
-        
+        $count += 1;
+
+        if ($count >= 2) {
+          break; 
+        }
       }
 
       if (count($data) === 0) {
@@ -217,6 +223,13 @@ function updateTicketHandler($ticket_id){
     if (!empty($unfound_ticket)) {
       respond('01', 'Ticket not found: ' . implode(', ', $unfound_ticket));
       return;
+    }
+
+    foreach ($data as $id) {
+      if (checkUnpaidTickets($id)) {
+        respond('01', 'Selected passenger/s must pay before departure.');
+        return;
+      }
     }
 
     foreach ($data as $id){
