@@ -1,17 +1,6 @@
 <?php
 require_once __DIR__ . '/../config/db.php';
-require_once __DIR__ . '/PaymentModel.php';
 require_once __DIR__ . '/../utils/DBUtils.php';
-
-function getPaymentFromTicket($id) {
-    global $pdo;
-    
-    $sql = "SELECT * FROM payment WHERE payment_id = :id";
-    
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute([':id' => $id]);
-    return $stmt->fetch(PDO::FETCH_ASSOC);
-}
 
 function getTickets($filters = [], $trip_summary = 0) {
     global $pdo;
@@ -118,41 +107,6 @@ function getTicketsByLocation($stop_id, $trip_id){
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-function getTotalPassengersByPaymentId($payment_id) {
-    global $pdo;
-
-    $sql = "SELECT COUNT(*) as total_passengers FROM ticket WHERE payment_id = :payment_id";
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute([':payment_id' => $payment_id]);
-    
-    return $stmt->fetchColumn();
-}
-
-function createTicketWithPayment($ticketData, $paymentData) {
-    global $pdo;
-    
-    try {
-        $pdo->beginTransaction();
-        
-        $ticketId = addTicket($ticketData);
-
-        $paymentData['ticket_id'] = $ticketId;
-        
-        $paymentId = addPayment($paymentData);
-        
-        $pdo->commit();
-        
-        return [
-            'ticket_id' => $ticketId,
-            'payment_id' => $paymentId
-        ];
-        
-    } catch (Exception $e) {
-        $pdo->rollBack();
-        throw $e;
-    }
-}
-
 function addTicket(array $data): int|false {
     global $pdo;
     $success = insertRecord('ticket', $data);
@@ -167,7 +121,7 @@ function checkSeatConflicts(array $seatNumbers, int $tripId): array {
     global $pdo;
 
     if (empty($seatNumbers)) {
-        return []; // No seat numbers to check, return an empty array
+        return [];
     }
 
     $placeholders = implode(',', array_fill(0, count($seatNumbers), '?'));

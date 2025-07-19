@@ -1,4 +1,7 @@
 <?php
+require_once __DIR__ . '/../config/db.php';
+require_once __DIR__ . '/../utils/DBUtils.php';
+
 function getTotalFareByPaymentId($payment_id) {
   global $pdo;
 

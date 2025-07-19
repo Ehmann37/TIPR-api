@@ -2,16 +2,6 @@
 require_once __DIR__ . '/../config/db.php';
 require_once __DIR__ . '/../utils/DBUtils.php';
 
-function getAllStops() {
-    global $pdo;
-
-    $sql = "SELECT stop_id, stop_name, latitude, longitude FROM stop ORDER BY stop_name ASC";
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute();
-
-    return $stmt->fetchAll(PDO::FETCH_ASSOC);
-}
-
 function getstopById($stopId) {
     global $pdo;
 

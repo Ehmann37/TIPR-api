@@ -19,17 +19,6 @@ function getActiveTrip($status = 'active') {
   }
 }
 
-function getTripIdByTicketId($ticket_id) {
-  global $pdo;
-
-  $sql = "SELECT t.trip_id FROM trip t
-          JOIN ticket ti ON t.trip_id = ti.trip_id
-          WHERE ti.ticket_id = :ticket_id";
-  $stmt = $pdo->prepare($sql);
-  $stmt->execute([':ticket_id' => $ticket_id]);
-  return $stmt->fetchColumn();
-}
-
 function completeInstatnce($trip_id, $status = 'complete') {
   global $pdo;
 
@@ -58,15 +47,6 @@ function createInstance($route_id, $status = 'active') {
   }
 
   return false;
-}
-
-function checkBusifActive($bus_id) {
-  global $pdo;
-
-  $sql = "SELECT trip_id FROM trip WHERE bus_id = :bus_id AND status = 'active'";
-  $stmt = $pdo->prepare($sql);
-  $stmt->execute([':bus_id' => $bus_id]);
-  return $stmt->fetchColumn() !== false;
 }
 
 function incrementTotalPassengers($trip_id, $numPassengers) {
