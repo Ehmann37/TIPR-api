@@ -199,70 +199,98 @@ function handleCreateTicket() {
 }
 
 function updateTicketHandler($ticket_id){
-  $ticket_info = [
-    'fare_amount' => getTicketByTicketId($ticket_id)['fare_amount'], 
-    'passenger_category' => getTicketByTicketId($ticket_id)['passenger_category']
-    ];
-
-  if ($ticket_id === null) {
-    respond('01', 'Missing ticket ID');
-    return;
-  }
-
-  if (!checkTicketExists($ticket_id)) {
-    respond('01', 'Ticket not found');
-    return;
-  }
-
-  $trip_id = getActiveTrip();
-  $payment_id = getTicketByTicketId($ticket_id)['payment_id'];
-  $totalFare = getTotalFareByPaymentId($payment_id);
-
   $data = sanitizeInput(getRequestBody());
 
-  $allowed = ['passenger_category', 'seat_number','payment_status', 'fare_amount'];
-  
-  if (!validateAtLeastOneField($data, $allowed)) {
-    respond('01', 'No valid fields provided for update');
-    return;
-  }
-
-  if ($data['payment_status'] !== null) {
-    $payment = updatePayment($ticket_id, ['payment_status' => $data['payment_status']], $allowed);
-    if (!$payment) {
-      respond('01', 'Payment_Status not changed');
-      exit;
+  if ($ticket_id === null) {
+    if (empty($data)) {
+      respond('01', 'Missing ticket_id/s');
+      return;
     }
-    incrementTotalRevenue($trip_id, $totalFare);
-
-  } 
-  unset($data['payment_status']);
-
-  if ($data['passenger_category'] != null || $data['seat_number'] != null) {
-
-    if ($data['seat_number'] !== null && $data['seat_number'] !== 'Aisle') {
-      $seats = (array) $data['seat_number'];
-
-      $conflictingSeats = checkSeatConflicts($seats, $trip_id);
-      if (!empty($conflictingSeats)) {
-        respond('01', 'Occupied Seats: ' . implode(', ', $conflictingSeats));
-      }
-    }
-
-    if ($data['passenger_category'] !== null) {
-      $state_1 = ['regular'];
-      $state_2 = ['senior', 'student', 'pwd'];
-      if (in_array($data['passenger_category'], $state_1) && in_array($ticket_info['passenger_category'], $state_2)) {
-        $data['fare_amount'] = $ticket_info['fare_amount'] * 1.25;
-      } elseif (in_array($data['passenger_category'], $state_2) && in_array($ticket_info['passenger_category'], $state_1)) {
-        $data['fare_amount'] = $ticket_info['fare_amount'] * 0.8;
-      } else {
-        $data['fare_amount'] = $ticket_info['fare_amount'];
-      }
-    }                                                                             
-    $ticket = updateTicket($ticket_id, $data, $allowed);
     
+    $unfound_ticket = [];
+    foreach ($data as $id){
+      if (!checkTicketExists($id)) {
+        $unfound_ticket[] = $id;
+      }
+    }
+
+    if (!empty($unfound_ticket)) {
+      respond('01', 'Ticket not found: ' . implode(', ', $unfound_ticket));
+      return;
+    }
+
+    foreach ($data as $id){
+      $update = updateTicket($id, ['passenger_status' => 'left_bus'], ['passenger_status']);  
+    } 
+    
+  } else {
+
+    $ticketData = getTicketByTicketId($ticket_id);
+
+    $ticket_info = [
+      'fare_amount' => $ticketData['fare_amount'], 
+      'passenger_category' => $ticketData['passenger_category']
+    ];
+    
+    if (!checkTicketExists($ticket_id)) {
+      respond('01', 'Ticket not found');
+      return;
+    }
+  
+    $trip_id = getActiveTrip();
+    $payment_id = getTicketByTicketId($ticket_id)['payment_id'];
+    $totalFare = getTotalFareByPaymentId($payment_id);
+  
+  
+    $allowed = ['passenger_category', 'seat_number','payment_status', 'fare_amount'];
+    
+    if (!validateAtLeastOneField($data, $allowed)) {
+      respond('01', 'No valid fields provided for update');
+      return;
+    }
+  
+    if ($data['payment_status'] !== null) {
+      $payment = updatePayment($ticket_id, ['payment_status' => $data['payment_status']], $allowed);
+      if (!$payment) {
+        respond('01', 'Payment_Status not changed');
+        exit;
+      }
+      incrementTotalRevenue($trip_id, $totalFare);
+  
+    } 
+    unset($data['payment_status']);
+  
+    if ($data['passenger_category'] != null || $data['seat_number'] != null) {
+  
+      if ($data['seat_number'] !== null && $data['seat_number'] !== 'Aisle') {
+        $seats = (array) $data['seat_number'];
+  
+        $conflictingSeats = checkSeatConflicts($seats, $trip_id);
+        if (!empty($conflictingSeats)) {
+          respond('01', 'Occupied Seats: ' . implode(', ', $conflictingSeats));
+        }
+      }
+  
+      if ($data['passenger_category'] !== null) {
+        $state_1 = ['regular'];
+        $state_2 = ['senior', 'student', 'pwd'];
+        if (in_array($data['passenger_category'], $state_1) && in_array($ticket_info['passenger_category'], $state_2)) {
+          $data['fare_amount'] = $ticket_info['fare_amount'] * 1.25;
+        } elseif (in_array($data['passenger_category'], $state_2) && in_array($ticket_info['passenger_category'], $state_1)) {
+          $data['fare_amount'] = $ticket_info['fare_amount'] * 0.8;
+        } else {
+          $data['fare_amount'] = $ticket_info['fare_amount'];
+        }
+      }                                                                             
+      $ticket = updateTicket($ticket_id, $data, $allowed);
+      if (!$ticket) {
+        respond('01', 'Ticket not updated');
+        return;
+      }
+    }
   }
+
+  
 
   respond ('1', 'Ticket updated successfully');
 }
