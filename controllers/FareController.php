@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . '/../models/LocationModel.php';
+require_once __DIR__ . '/../models/FareModel.php';
 require_once __DIR__ . '/../utils/RequestUtils.php';
 require_once __DIR__ . '/../utils/QueryUtils.php';
 require_once __DIR__ . '/../utils/ValidationUtils.php';
@@ -29,10 +30,8 @@ function handleGetAmount($queryParams) {
       $destination_coordinates['longitude']
     );
 
-    $baseFare = 40.0;
-    $fare_amount = $baseFare + ($distance - 4) * 5;
+    $fare_amount = calculateFare($distance);
 
-    respond('1', 'Fare calculated successfully', [
-        'fare_amount' => $fare_amount
-    ]);
+    respond('1', 'Fare calculated successfully',$fare_amount
+    );
 }
