@@ -22,7 +22,7 @@ function handleTrip($queryParams){
         $filters = buildFilters($queryParams, ['trip_id']);
 
         
-        $tickets = getTickets($filters);
+        $tickets = getTickets($filters, 1);
 
         respond('1', 'Trip Summary Fetched', [
             'trip_details' => $tripDetails,

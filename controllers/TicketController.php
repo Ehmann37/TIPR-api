@@ -1,9 +1,9 @@
 <?php
 
 require_once __DIR__ . '/../models/TicketModel.php';
+require_once __DIR__ . '/../models/FareModel.php';
 require_once __DIR__ . '/../models/PaymentModel.php';
 require_once __DIR__ . '/../models/TripModel.php';
-require_once __DIR__ . '/../models/BusModel.php';
 require_once __DIR__ . '/../models/StopModel.php';
 require_once __DIR__ . '/../models/LocationModel.php';
 require_once __DIR__ . '/../utils/RequestUtils.php';
@@ -17,7 +17,6 @@ function handleGetTicket($queryParams) {
   $ticket_id = $queryParams['ticket_id'];
   $latitude = $queryParams['latitude'];
   $longitude = $queryParams['longitude'];
-  $bus_id = $queryParams['bus_id'];
   $passenger_status = $queryParams['passenger_status'];
   $payment_status = $queryParams['payment_status'];
 
@@ -42,16 +41,8 @@ function handleGetTicket($queryParams) {
 
   } else {
     if ($latitude !== null && $longitude !== null){
-      if ($bus_id === null) {
-        respond('01', 'Bus ID is required when latitude and longitude are provided');
-      }
 
-      if (!checkBusExists($bus_id)) {
-        respond('01', 'Bus not found');
-        return;
-      }
-
-      $trip_id = getActiveTrip($bus_id) ?? null;
+      $trip_id = getActiveTrip() ?? null;
       if ($trip_id === null) {
         respond('01', 'No Active Trip Found for the Bus');
       } 
@@ -67,7 +58,7 @@ function handleGetTicket($queryParams) {
         'stop_id' => getStopById($current_stop_id)['stop_id']
       ];
       
-      $stops = array_merge($stops, getStopsByBusId($bus_id, $current_stop_id));
+      $stops = array_merge($stops, getStopsByTripId($trip_id, $current_stop_id));
 
       $data = [
         'current_stop' => findNearestStop($latitude, $longitude)['stop_name']
@@ -90,7 +81,7 @@ function handleGetTicket($queryParams) {
       }
 
     } else {
-      $allowed = ['bus_id', 'passenger_status', 'payment_status', 'passenger_category', 'trip_id'];
+      $allowed = ['passenger_status', 'payment_status', 'passenger_category', 'trip_id'];
       $filters = buildFilters($queryParams, $allowed);
       $tickets = getTickets($filters);
 
@@ -113,7 +104,7 @@ function handleGetTicket($queryParams) {
 function handleCreateTicket() {
   $data = sanitizeInput(getRequestBody());
 
-  $requiredFields = ['trip_id', 'origin_stop_id', 'destination_stop_id', 'bus_id', 'boarding_time', 'contact_info', 'passengers', 'payment'];
+  $requiredFields = ['trip_id', 'origin_stop_id', 'destination_stop_id', 'boarding_time', 'contact_info', 'passengers', 'payment'];
   $missing = validateFields($data, $requiredFields);
   if (!empty($missing)) {
     respond('01', 'Missing required fields: ' . implode(', ', $missing));
@@ -124,7 +115,6 @@ function handleCreateTicket() {
     'trip_id' => $data['trip_id'],
     'origin_stop_id' => $data['origin_stop_id'],
     'destination_stop_id' => $data['destination_stop_id'],
-    'bus_id' => $data['bus_id'],
     'boarding_time' => $data['boarding_time'],
     'arrival_time' => $data['arrival_time'] ?? null,
     'contact_info' => $data['contact_info'],
@@ -158,8 +148,7 @@ function handleCreateTicket() {
     $destinationCoordinates['longitude']
   );
 
-  $baseFare = 40.0;
-  $fare_amount = $baseFare + ($distance - 4) * 5;
+  $fare_amount = calculateFare($distance)['total_fare'];
 
   try {
     $paymentInserted = addPayment($paymentData);
@@ -225,7 +214,7 @@ function updateTicketHandler($ticket_id){
     return;
   }
 
-  $trip_id = getTripIdByTicketId($ticket_id);
+  $trip_id = getActiveTrip();
   $payment_id = getTicketByTicketId($ticket_id)['payment_id'];
   $totalFare = getTotalFareByPaymentId($payment_id);
 

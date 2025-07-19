@@ -13,23 +13,21 @@ function getPaymentFromTicket($id) {
     return $stmt->fetch(PDO::FETCH_ASSOC);
 }
 
-function getTickets($filters = []) {
+function getTickets($filters = [], $trip_summary = 0) {
     global $pdo;
 
     $params = [];
     $where = buildWhereClause([
-        't.bus_id' => $filters['bus_id'] ?? null,
         't.passenger_status' => $filters['passenger_status'] ?? null,
         't.passenger_category' => $filters['passenger_category'] ?? null,
         'p.payment_status' => $filters['payment_status'] ?? null,
         't.trip_id' => $filters['trip_id'] ?? null
     ], $params);
 
-    $sql = "SELECT t.*, b.bus_id, s_orig.stop_name AS origin_stop_name, s_dest.stop_name AS destination_stop_name
+    $sql = "SELECT t.*, s_orig.stop_name AS origin_stop_name, s_dest.stop_name AS destination_stop_name
         FROM ticket t
         LEFT JOIN stop s_orig ON t.origin_stop_id = s_orig.stop_id
         LEFT JOIN stop s_dest ON t.destination_stop_id = s_dest.stop_id
-        LEFT JOIN bus b ON t.bus_id = b.bus_id
         LEFT JOIN payment p ON t.payment_id = p.payment_id
         WHERE 1=1 $where ORDER BY t.ticket_id ASC";
 
@@ -46,7 +44,7 @@ function getTickets($filters = []) {
     foreach ($tickets as $ticket) {
         $payment = getPaymentFromTicket($ticket['payment_id']);
 
-        if (isset($filters['trip_id']) && !isset($filters['bus_id'])) {
+        if (isset($filters['trip_id']) && $trip_summary == 1) {
             foreach ($payment as $key => $value) {
                 $ticket[$key] = $value;
                 
@@ -99,27 +97,6 @@ function getTicketByTicketId($ticket_id) {
     $stmt->execute([':ticket_id' => $ticket_id]);
     $ticket = $stmt->fetch(PDO::FETCH_ASSOC);
     return $ticket ?: null;
-}
-
-function getTotalFareByPaymentId($payment_id) {
-    global $pdo;
-
-    $sql = "SELECT SUM(fare_amount) as total_fare
-            FROM ticket 
-            WHERE payment_id = :payment_id";
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute([':payment_id' => $payment_id]);
-    return $stmt->fetchColumn();
-}
-
-function getFareByTicketId($ticket_id){
-    global $pdo;
-
-    $sql = "SELECT fare_amount FROM ticket WHERE ticket_id = :ticket_id";
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute([':ticket_id' => $ticket_id]);
-    return $stmt->fetchColumn();
-
 }
 
 function checkTicketExists($id) {

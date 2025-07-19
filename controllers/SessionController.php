@@ -1,10 +1,10 @@
 <?php
 
-require_once __DIR__ . '/../models/BusModel.php';
 require_once __DIR__ . '/../models/StopModel.php';
 require_once __DIR__ . '/../models/TripModel.php';
 require_once __DIR__ . '/../models/PaymentModel.php';
 require_once __DIR__ . '/../models/TicketModel.php';
+require_once __DIR__ . '/../models/FareModel.php';
 require_once __DIR__ . '/../utils/RequestUtils.php';
 require_once __DIR__ . '/../utils/ResponseUtils.php';
 require_once __DIR__ . '/../utils/TokenUtils.php';

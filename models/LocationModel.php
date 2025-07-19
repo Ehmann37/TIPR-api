@@ -16,13 +16,14 @@ function findDistance($lat1, $lon1, $lat2, $lon2) {
     return $earthRadius * $c; 
   }
 
-  function getStopCoordinates(int $stop_id) {
-    global $pdo;
+function getStopCoordinates(int $stop_id) {
+  global $pdo;
 
-    $sql = "SELECT latitude, longitude FROM stop WHERE stop_id = :stop_id";
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute([':stop_id' => $stop_id]);
 
-    return $stmt->fetch(PDO::FETCH_ASSOC);
-  }
-  ?>
+  $sql = "SELECT latitude, longitude FROM stop WHERE stop_id = :stop_id";
+  $stmt = $pdo->prepare($sql);
+  $stmt->execute([':stop_id' => $stop_id]);
+
+  return $stmt->fetch(PDO::FETCH_ASSOC);
+}
+?>
