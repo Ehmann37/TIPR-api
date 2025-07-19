@@ -215,12 +215,4 @@ function getAssociateSeatByPaymentId($payment_id, $ticket_id) {
     return $stmt->fetchAll(PDO::FETCH_COLUMN);
 }
 
-function checkPassengerLeftBus($trip_id){
-    global $pdo;
 
-    $sql = "SELECT COUNT(*) FROM ticket WHERE trip_id = :trip_id AND passenger_status = 'on_bus'";
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute([':trip_id' => $trip_id]);
-    
-    return $stmt->fetchColumn() > 0;
-}

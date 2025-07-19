@@ -8,74 +8,53 @@ require_once __DIR__ . '/../utils/RequestUtils.php';
 require_once __DIR__ . '/../utils/QueryUtils.php';
 
 
-function handleGetTripSummary($queryParams){
+function handleTrip($queryParams){
     $trip_id = $queryParams['trip_id'] ?? null;
+    $route_id = $queryParams['route_id'] ?? null;
 
     if ($trip_id !== null){
         if (!checkTripExist($trip_id)){
             respond('01', 'Trip not Found');
         }
-    }
 
-    $tripDetails = getTripDetails($trip_id);
+        $tripDetails = getTripDetails($trip_id);
 
-    $filters = buildFilters($queryParams, ['trip_id']);
+        $filters = buildFilters($queryParams, ['trip_id']);
 
-    
-    $tickets = getTickets($filters);
+        
+        $tickets = getTickets($filters);
 
-    respond('1', 'Trip Summary Fetched', [
-        'trip_details' => $tripDetails,
-        'tickets' => $tickets
-    ]);
-}
+        respond('1', 'Trip Summary Fetched', [
+            'trip_details' => $tripDetails,
+            'tickets' => $tickets
+        ]);
+    } else {
+        $trip_id = getActiveTrip() ?? null;
 
-function handleUpdateTripStatus() {
-    $data = sanitizeInput(getRequestBody());
-
-    $missing = validateFields($data, ['bus_id', 'status']);
-    if (!empty($missing)) {
-        respond('01', 'Missing required fields: ' . implode(', ', $missing));
-        return;
-    }
-
-    $bus_id = $data['bus_id'];
-    $status = $data['status'];
-
-    if (!checkBusExists($bus_id)) {
-        respond('01', 'Bus not found');
-        return;
-    }
-
-    if (!in_array($status, ['active', 'complete'])) {
-        respond('01', 'Invalid status. Must be "active" or "complete".');
-        return;
-    }
-
-    try {
-        if ($status === 'complete') {
-            if (checkPassengerLeftBus(getActiveTrip($bus_id))) {
-                respond('01', 'Cannot complete trip, passengers still on bus');
+     
+        if ($trip_id === null) {
+            if ($route_id === null) {
+                respond('01', 'Route ID is required to start a trip');
                 return;
             }
-            $updated = completeInstatnce($bus_id, $status);
-            if (!$updated) {
-                respond('01', 'Trip not found or already completed');
-                return;
-            }
-            respond('1', 'Trip completed successfully');
-        } elseif ($status === 'active') {
-            if (checkBusifActive($bus_id)) {
-                respond('01', 'Bus already has an active trip');
-                return;
-            }
-            $id = createInstance($bus_id, $status);
+
+            $id = createInstance($route_id);
             respond('1', 'Trip started sucessfully', [
                 'trip_id' => $id
             ]);
-        }
+            return;
+        } else {
+            if (checkPassengerLeftBus($trip_id)) {
+                respond('01', 'Cannot complete trip, passengers still on bus');
+                return;
+            }
 
-    } catch (Exception $e) {
-        respond(500, $e->getMessage());
-    }
+            $updated = completeInstatnce($trip_id);
+            if (!$updated) {
+                respond('01', 'No active trip to complete');
+                return;
+            }
+            respond('1', 'Trip completed successfully');
+        }    
+    }   
 }

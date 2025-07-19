@@ -11,11 +11,8 @@ $method = $_SERVER['REQUEST_METHOD'];
 
 switch($method) {
   case 'GET':
-    $queryParams = getQueryParams(['trip_id']);
-    handleGetTripSummary($queryParams);
-  case 'PUT':
-    handleUpdateTripStatus();
-    break;
+    $queryParams = getQueryParams(['trip_id', 'route_id']);
+    handleTrip($queryParams);
 
   default:
     respond('02', 'Method Not Allowed');
