@@ -22,12 +22,12 @@ function getstopById($stopId) {
     return $stmt->fetch(PDO::FETCH_ASSOC);
 }
 
-function getStopsByBusId($busId, $currentStopId) {
+function getStopsByTripId($trip_id, $currentStopId) {
     global $pdo;
 
-    $sqlRoute = "SELECT route_id FROM bus WHERE bus_id = :bus_id";
+    $sqlRoute = "SELECT route_id FROM trip WHERE trip_id = :trip_id";
     $stmtRoute = $pdo->prepare($sqlRoute);
-    $stmtRoute->execute([':bus_id' => $busId]);
+    $stmtRoute->execute([':trip_id' => $trip_id]);
     $route = $stmtRoute->fetch(PDO::FETCH_ASSOC);
 
     if (!$route) return []; 

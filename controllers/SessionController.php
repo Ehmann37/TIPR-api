@@ -13,37 +13,25 @@ require_once __DIR__ . '/../utils/TimeUtils.php';
 function handleTripPost() {
     $KEY = 'mysecretkey1234567890abcdef';
     $data = sanitizeInput(getRequestBody());
+    $trip_id = getActiveTrip();
 
-    if (isset($data['latitude'], $data['longitude'], $data['bus_id'])) {
-        if (!is_numeric($data['bus_id']) || intval($data['bus_id']) != $data['bus_id']) {
-            respond('01', 'Invalid bus_id. It must be an integer.');
-            return;
-        }
+    if ($trip_id === null) {
+        respond('01', 'No active trip found');
+        return;
+    }
 
+    if (isset($data['latitude'], $data['longitude'])) {
+        
         $nearestStop = findNearestStop($data['latitude'], $data['longitude']);
-        $busId = intval($data['bus_id']);
-
-        if (!checkBusExists($busId)) {
-            respond('01', 'Bus not found');
-            return;
-        }
-
         if (!$nearestStop) {
             respond('01', 'No nearby stop found');
             return;
         }
 
-        $tripId = getActiveTrip($busId);
-        if (!$tripId) {
-            respond('01', 'No active trip for the bus');
-            return;
-        }
-
         $payload = [
             'timestamp' => getCurrentTime(),
-            'bus_id' => $busId,
             'stop_id' => $nearestStop['stop_id'],
-            'trip_id' => $tripId
+            'trip_id' => $trip_id
         ];
 
         $token = encryptData(json_encode($payload), $KEY);
@@ -51,7 +39,7 @@ function handleTripPost() {
         respond('1', 'Stop and trip data encrypted', [
             'stop_name' => $nearestStop['stop_name'],
             'token' => $token,
-            'trip_id' => $tripId
+            'trip_id' => $trip_id
         ]);
 
     } elseif (isset($data['id'], $data['payment_id'])) {
@@ -61,14 +49,16 @@ function handleTripPost() {
             return;
         }
 
-        if ($tripDetails['trip_id'] !== getActiveTrip($tripDetails['bus_id'])) {
-            respond('01', 'Trip not active or does not match the bus');
+        $trip_id = getActiveTrip();
+
+        if ($tripDetails['trip_id'] !== $trip_id) {
+            respond('01', 'Trip not active or does not match');
             return;
         }
 
         $tripDetails['current_stop'] = getStopById($tripDetails['stop_id'])['stop_name'] ?? null;
         $tripDetails['current_stop_id'] = getStopById($tripDetails['stop_id'])['stop_id'] ?? null;
-        $tripDetails['stops'] = getStopsByBusId($tripDetails['bus_id'], $tripDetails['stop_id']);
+        $tripDetails['stops'] = getStopsByTripId($trip_id, $tripDetails['stop_id']);
         unset($tripDetails['stop_id']);
 
         $passenger = checkPaymentExists($data['payment_id']);
