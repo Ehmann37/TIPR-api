@@ -6,11 +6,14 @@ require_once __DIR__ . '/../utils/ValidationUtils.php';
 require_once __DIR__ . '/../utils/ResponseUtils.php';
 require_once __DIR__ . '/../utils/RequestUtils.php';
 require_once __DIR__ . '/../utils/QueryUtils.php';
+require_once __DIR__ . '/../utils/TokenUtils.php';
 
 
 function handleTrip($queryParams){
     $trip_id = $queryParams['trip_id'] ?? null;
     $route_id = $queryParams['route_id'] ?? null;
+    $KEY = 'mysecretkey1234567890abcdef';
+
 
     if ($trip_id !== null){
         if (!checkTripExist($trip_id)){
@@ -25,8 +28,15 @@ function handleTrip($queryParams){
         $tickets = getTickets($filters, 1);
 
         respond('1', 'Trip Summary Fetched', [
-            'trip_details' => $tripDetails,
-            'tickets' => $tickets
+            'encrypted_data' => encryptData(json_encode([
+                    'trip_details' => $tripDetails,
+                    'tickets' => $tickets
+            ]), $KEY),
+            'trip_summary' => [
+                'trip_details' => $tripDetails,
+                    'tickets' => $tickets
+            ]
+            
         ]);
     } else {
         $trip_id = getActiveTrip() ?? null;
