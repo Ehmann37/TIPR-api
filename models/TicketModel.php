@@ -6,7 +6,7 @@ require_once __DIR__ . '/../utils/DBUtils.php';
 function getPaymentFromTicket($id) {
     global $pdo;
     
-    $sql = "SELECT * FROM payment WHERE payment_id = :id";
+    $sql = "SELECT * FROM payments WHERE payment_id = :id";
     
     $stmt = $pdo->prepare($sql);
     $stmt->execute([':id' => $id]);
@@ -25,10 +25,10 @@ function getTickets($filters = [], $trip_summary = 0) {
     ], $params);
 
     $sql = "SELECT t.*, s_orig.stop_name AS origin_stop_name, s_dest.stop_name AS destination_stop_name
-        FROM ticket t
-        LEFT JOIN stop s_orig ON t.origin_stop_id = s_orig.stop_id
-        LEFT JOIN stop s_dest ON t.destination_stop_id = s_dest.stop_id
-        LEFT JOIN payment p ON t.payment_id = p.payment_id
+        FROM tickets t
+        LEFT JOIN stops s_orig ON t.origin_stop_id = s_orig.stop_id
+        LEFT JOIN stops s_dest ON t.destination_stop_id = s_dest.stop_id
+        LEFT JOIN payments p ON t.payment_id = p.payment_id
         WHERE 1=1 $where ORDER BY t.ticket_id ASC";
 
     $stmt = $pdo->prepare($sql);
@@ -70,12 +70,12 @@ function getTickets($filters = [], $trip_summary = 0) {
 function getTicketByPaymentId($payment_id) {
     global $pdo;
 
-    $paymentSql = "SELECT * FROM payment WHERE payment_id = :payment_id";
+    $paymentSql = "SELECT * FROM payments WHERE payment_id = :payment_id";
     $paymentStmt = $pdo->prepare($paymentSql);
     $paymentStmt->execute([':payment_id' => $payment_id]);
     $payment = $paymentStmt->fetch(PDO::FETCH_ASSOC);
 
-    $ticketSql = "SELECT * FROM ticket WHERE payment_id = :payment_id";
+    $ticketSql = "SELECT * FROM tickets WHERE payment_id = :payment_id";
     $ticketStmt = $pdo->prepare($ticketSql);
     $ticketStmt->execute([':payment_id' => $payment_id]);
     $tickets = $ticketStmt->fetchAll(PDO::FETCH_ASSOC);
@@ -89,8 +89,8 @@ function getTicketByPaymentId($payment_id) {
 function getTicketByTicketId($ticket_id) {
     global $pdo;
     
-    $sql = "SELECT t.*,p.* FROM ticket t
-            JOIN payment p ON t.payment_id = p.payment_id
+    $sql = "SELECT t.*,p.* FROM tickets t
+            JOIN payments p ON t.payment_id = p.payment_id
             WHERE t.ticket_id = :ticket_id";
     
     $stmt = $pdo->prepare($sql);
@@ -100,14 +100,14 @@ function getTicketByTicketId($ticket_id) {
 }
 
 function checkTicketExists($id) {
-    return checkExists('ticket', 'ticket_id', $id);
+    return checkExists('tickets', 'ticket_id', $id);
 }
 
 function getTicketsByLocation($stop_id, $trip_id){
     global $pdo;
 
-    $sql = "SELECT t.*, p.* FROM ticket t 
-        JOIN payment p ON t.payment_id = p.payment_id
+    $sql = "SELECT t.*, p.* FROM tickets t 
+        JOIN payments p ON t.payment_id = p.payment_id
         WHERE destination_stop_id = :stop_id AND trip_id = :trip_id AND passenger_status = :passenger_status";
     $stmt = $pdo->prepare($sql);
     $stmt->execute([
@@ -121,12 +121,12 @@ function getTicketsByLocation($stop_id, $trip_id){
 
 function addTicket(array $data): int|false {
     global $pdo;
-    $success = insertRecord('ticket', $data);
+    $success = insertRecord('tickets', $data);
     return $success ? $pdo->lastInsertId() : false;
 }
 
 function updateTicket($id, $data, $allowedFields) {
-    return updateRecord('ticket', 'ticket_id', $id, $data, $allowedFields);
+    return updateRecord('tickets', 'ticket_id', $id, $data, $allowedFields);
 }
 
 function checkSeatConflicts(array $seatNumbers, int $tripId): array {
@@ -137,7 +137,7 @@ function checkSeatConflicts(array $seatNumbers, int $tripId): array {
     }
 
     $placeholders = implode(',', array_fill(0, count($seatNumbers), '?'));
-    $query = "SELECT seat_number FROM ticket WHERE trip_id = ? AND seat_number IS NOT NULL AND seat_number IN ($placeholders)";
+    $query = "SELECT seat_number FROM tickets WHERE trip_id = ? AND seat_number IS NOT NULL AND seat_number IN ($placeholders)";
 
     $stmt = $pdo->prepare($query);
     $stmt->execute(array_merge([$tripId], $seatNumbers));
@@ -148,7 +148,7 @@ function checkSeatConflicts(array $seatNumbers, int $tripId): array {
 function getAssociateSeatByPaymentId($payment_id, $ticket_id) {
     global $pdo;
 
-    $sql = "SELECT seat_number FROM ticket WHERE payment_id = :payment_id AND ticket_id != :ticket_id";
+    $sql = "SELECT seat_number FROM tickets WHERE payment_id = :payment_id AND ticket_id != :ticket_id";
     $stmt = $pdo->prepare($sql);
     $stmt->execute([
         ':payment_id' => $payment_id,

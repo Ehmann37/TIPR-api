@@ -10,7 +10,7 @@ function getAlerts($filters = []) {
         'trip_id' => $filters['trip_id'] ?? null
     ], $params);
 
-    $sql = "SELECT * FROM alert WHERE 1=1 $where ORDER BY created_at DESC";
+    $sql = "SELECT * FROM alerts WHERE 1=1 $where ORDER BY created_at DESC";
 
     $stmt = $pdo->prepare($sql);
     $stmt->execute($params);
@@ -18,17 +18,17 @@ function getAlerts($filters = []) {
 }
 
 function createAlert(array $data): bool {
-    return insertRecord('alert', $data);
+    return insertRecord('alerts', $data);
 }
 
 function updateAlert($id) {
     global $pdo;
-    $sql = "UPDATE alert SET has_read = TRUE WHERE id = :id";
+    $sql = "UPDATE alerts SET has_read = TRUE WHERE id = :id";
     $stmt = $pdo->prepare($sql);
     $stmt->execute([':id' => $id]);
     return $stmt->rowCount() > 0;
 }
 
 function checkAlertExists($id) {
-    return checkExists('alert', 'id', $id);
+    return checkExists('alerts', 'id', $id);
 }

@@ -5,7 +5,7 @@ require_once __DIR__ . '/../utils/DBUtils.php';
 function getstopById($stopId) {
     global $pdo;
 
-    $sql = "SELECT stop_id, stop_name, latitude, longitude FROM stop WHERE stop_id = :stop_id";
+    $sql = "SELECT stop_id, stop_name, latitude, longitude FROM stops WHERE stop_id = :stop_id";
     $stmt = $pdo->prepare($sql);
     $stmt->execute([':stop_id' => $stopId]);
 
@@ -15,7 +15,7 @@ function getstopById($stopId) {
 function getStopsByTripId($trip_id, $currentStopId) {
     global $pdo;
 
-    $sqlRoute = "SELECT route_id FROM trip WHERE trip_id = :trip_id";
+    $sqlRoute = "SELECT route_id FROM trips WHERE trip_id = :trip_id";
     $stmtRoute = $pdo->prepare($sqlRoute);
     $stmtRoute->execute([':trip_id' => $trip_id]);
     $route = $stmtRoute->fetch(PDO::FETCH_ASSOC);
@@ -23,7 +23,7 @@ function getStopsByTripId($trip_id, $currentStopId) {
     if (!$route) return []; 
     $routeId = $route['route_id'];
 
-    $sqlCurrentOrder = "SELECT stop_order FROM route WHERE route_id = :route_id AND stop_id = :stop_id";
+    $sqlCurrentOrder = "SELECT stop_order FROM routes WHERE route_id = :route_id AND stop_id = :stop_id";
     $stmtCurrentOrder = $pdo->prepare($sqlCurrentOrder);
     $stmtCurrentOrder->execute([
         ':route_id' => $routeId,
@@ -35,8 +35,8 @@ function getStopsByTripId($trip_id, $currentStopId) {
 
     $sqlStops = "
         SELECT s.stop_name, s.stop_id
-        FROM route r
-        JOIN stop s ON r.stop_id = s.stop_id
+        FROM routes r
+        JOIN stops s ON r.stop_id = s.stop_id
         WHERE r.route_id = :route_id
           AND r.stop_order > :current_order
         ORDER BY r.stop_order ASC
@@ -60,7 +60,7 @@ function findNearestStop($lat, $lng, $radiusMeters = 1000000){
                 COS(RADIANS(longitude) - RADIANS(:lng)) +
                 SIN(RADIANS(:lat)) * SIN(RADIANS(latitude))
             )) AS distance
-        FROM stop
+        FROM stops
         HAVING distance <= :radius
         ORDER BY distance ASC
         LIMIT 1
@@ -76,5 +76,5 @@ function findNearestStop($lat, $lng, $radiusMeters = 1000000){
 }
 
 function checkStopExists($id) {
-    return checkExists('stop', 'stop_id', $id);
+    return checkExists('stops', 'stop_id', $id);
 }

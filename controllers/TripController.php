@@ -1,7 +1,6 @@
 <?php
 require_once __DIR__ . '/../models/TripModel.php';
 require_once __DIR__ . '/../models/TicketModel.php';
-require_once __DIR__ . '/../models/BusModel.php';
 require_once __DIR__ . '/../utils/ValidationUtils.php'; 
 require_once __DIR__ . '/../utils/ResponseUtils.php';
 require_once __DIR__ . '/../utils/RequestUtils.php';
@@ -14,8 +13,11 @@ function handleTrip($queryParams){
     $route_id = $queryParams['route_id'] ?? null;
     $KEY = 'mysecretkey1234567890abcdef';
 
+    if ($trip_id === null){
+        respond('01', 'Provide Trip ID');
+    }
 
-    if ($trip_id !== null){
+    if ($route_id === null){
         if (!checkTripExist($trip_id)){
             respond('01', 'Trip not Found');
         }
@@ -39,32 +41,48 @@ function handleTrip($queryParams){
             
         ]);
     } else {
-        $trip_id = getActiveTrip() ?? null;
+        $active_trip_id = getActiveTrip() ?? null;
 
      
-        if ($trip_id === null) {
+        if ($active_trip_id === null) {
             if ($route_id === null) {
                 respond('01', 'Route ID is required to start a trip');
                 return;
             }
 
-            $id = createInstance($route_id);
-            respond('1', 'Trip started sucessfully', [
-                'trip_id' => $id
+            if (checkTripExist($trip_id)){
+                respond('01', 'Trip with this ID already exists');
+            }
+
+            $createdTrip = createInstance($trip_id, $route_id);
+            respond('1', 'Trip started successfully', [
+                'trip_id' => getActiveTrip(),
             ]);
             return;
         } else {
-            if (checkPassengerLeftBus($trip_id)) {
-                respond('01', 'Cannot complete trip, passengers still on bus');
-                return;
-            }
-
-            $updated = completeInstatnce($trip_id);
-            if (!$updated) {
-                respond('01', 'No active trip to complete');
-                return;
-            }
-            respond('1', 'Trip completed successfully');
+            respond('01', 'Trip already started', [
+                'trip_id' => $active_trip_id
+            ]);
         }    
     }   
+}
+
+function handleTripPost(){
+    $trip_id = getActiveTrip() ?? null;
+     
+    if ($trip_id === null) {
+        respond('01', 'No active trip found');
+    } else {
+        if (checkPassengerLeftBus($trip_id)) {
+            respond('01', 'Cannot complete trip, passengers still on bus');
+            return;
+        }
+
+        $updated = completeInstatnce($trip_id);
+        if (!$updated) {
+            respond('01', 'No active trip to complete');
+            return;
+        }
+        respond('1', 'Trip completed successfully');
+    }    
 }

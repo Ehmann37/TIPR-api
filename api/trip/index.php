@@ -14,6 +14,8 @@ switch($method) {
     $queryParams = getQueryParams(['trip_id', 'route_id']);
     handleTrip($queryParams);
 
+  case 'PUT':
+    handleTripPost();
   default:
     respond('02', 'Method Not Allowed');
 }

@@ -21,7 +21,7 @@ function getStopCoordinates(int $stop_id) {
   global $pdo;
 
 
-  $sql = "SELECT latitude, longitude FROM stop WHERE stop_id = :stop_id";
+  $sql = "SELECT latitude, longitude FROM stops WHERE stop_id = :stop_id";
   $stmt = $pdo->prepare($sql);
   $stmt->execute([':stop_id' => $stop_id]);
 

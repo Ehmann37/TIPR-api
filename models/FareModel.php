@@ -6,7 +6,7 @@ function getTotalFareByPaymentId($payment_id) {
   global $pdo;
 
   $sql = "SELECT SUM(fare_amount) as total_fare
-          FROM ticket 
+          FROM tickets 
           WHERE payment_id = :payment_id";
   $stmt = $pdo->prepare($sql);
   $stmt->execute([':payment_id' => $payment_id]);
